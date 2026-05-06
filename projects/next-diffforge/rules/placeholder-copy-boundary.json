@@ -1,0 +1,26 @@
+{
+  "id": "rule.next.placeholder_copy_boundary",
+  "kind": "rule",
+  "status": "accepted",
+  "summary": "Static marketing and pricing copy does not define implemented product or billing behavior.",
+  "invariants": [
+    "Plan names, plan prices, feature names, agent lanes, and workspace previews are placeholders until backed by implementation and policy.",
+    "Billing, quota, entitlement, agent execution, project memory, and diff orchestration behavior must not be inferred from page copy alone.",
+    "Turning any placeholder claim into real behavior requires a behavior policy update or pending proposal."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/index.js",
+      "symbols": [
+        "capabilities",
+        "lanes"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/pricing.js",
+      "symbols": [
+        "plans"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "file.next.billing_server",
+  "kind": "file",
+  "status": "pending",
+  "path": "next-diffforge/src/lib/server/billing.js",
+  "summary": "Verifies and derives local free or paid billing status and returns local user profile data for Appwrite users.",
+  "responsibilities": [
+    "Upsert local user records from verified Appwrite account data.",
+    "Derive paid status from active or trialing Stripe subscriptions.",
+    "Keep users.plan_status synchronized with latest known Stripe state.",
+    "Return local user fields needed for dashboard general account display.",
+    "Create Stripe subscription Checkout Sessions for verified users using server-only Stripe configuration."
+  ],
+  "invariants": [
+    "Callers must verify Appwrite identity before passing user data to this module.",
+    "No client-provided plan status may be trusted.",
+    "Missing Stripe subscription state must resolve to free.",
+    "Returned local user profile must be derived from the verified Appwrite identity and SQL row.",
+    "Checkout sessions must use STRIPE_SECRET_KEY, STRIPE_PRO_PRICE_ID, and APP_URL from server environment."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/lib/server/billing.js",
+      "symbols": [
+        "upsertUserFromAppwrite",
+        "getBillingStatusForAppwriteUser"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/lib/server/appwrite-auth.js",
+      "symbols": [
+        "getVerifiedAppwriteUser"
+      ]
+    }
+  ]
+}

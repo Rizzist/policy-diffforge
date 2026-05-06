@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0.0",
+  "workspace": "diffforge",
+  "scope": "workspace_sql",
+  "summary": "Top-level SQL policy graph for Diffforge CockroachDB database contracts, tables, and migrations shared across app layers.",
+  "databases": [
+    "policy-diffforge/sql/nodes/databases/cockroachdb-main.json"
+  ],
+  "database_tables": [
+    "policy-diffforge/sql/nodes/tables/users.json",
+    "policy-diffforge/sql/nodes/tables/stripe-customers.json",
+    "policy-diffforge/sql/nodes/tables/stripe-subscriptions.json",
+    "policy-diffforge/sql/nodes/tables/stripe-webhook-events.json",
+    "policy-diffforge/sql/nodes/tables/desktop-auth-codes.json",
+    "policy-diffforge/sql/nodes/tables/desktop-sessions.json"
+  ],
+  "migrations": [
+    "policy-diffforge/sql/nodes/migrations/20260505-stripe-billing.json",
+    "policy-diffforge/sql/nodes/migrations/20260506-desktop-auth.json"
+  ],
+  "edges": [
+    {
+      "id": "edge.db.main.owns_users",
+      "from": "db.main",
+      "to": "table.public.users",
+      "type": "owns_table",
+      "label": "Owns users table"
+    },
+    {
+      "id": "edge.db.main.owns_stripe_customers",
+      "from": "db.main",
+      "to": "table.public.stripe_customers",
+      "type": "owns_table",
+      "label": "Owns stripe_customers table"
+    },
+    {
+      "id": "edge.db.main.owns_stripe_subscriptions",
+      "from": "db.main",
+      "to": "table.public.stripe_subscriptions",
+      "type": "owns_table",
+      "label": "Owns stripe_subscriptions table"
+    },
+    {
+      "id": "edge.db.main.owns_stripe_webhook_events",
+      "from": "db.main",
+      "to": "table.public.stripe_webhook_events",
+      "type": "owns_table",
+      "label": "Owns stripe_webhook_events table"
+    },
+    {
+      "id": "edge.db.main.owns_desktop_auth_codes",
+      "from": "db.main",
+      "to": "table.public.desktop_auth_codes",
+      "type": "owns_table",
+      "label": "Owns desktop_auth_codes table"
+    },
+    {
+      "id": "edge.db.main.owns_desktop_sessions",
+      "from": "db.main",
+      "to": "table.public.desktop_sessions",
+      "type": "owns_table",
+      "label": "Owns desktop_sessions table"
+    },
+    {
+      "id": "edge.migration.20260505.stripe_billing.changes_users",
+      "from": "migration.20260505.stripe_billing",
+      "to": "table.public.users",
+      "type": "migration_changes_table",
+      "label": "Creates users table"
+    },
+    {
+      "id": "edge.migration.20260505.stripe_billing.changes_stripe_customers",
+      "from": "migration.20260505.stripe_billing",
+      "to": "table.public.stripe_customers",
+      "type": "migration_changes_table",
+      "label": "Creates stripe_customers table"
+    },
+    {
+      "id": "edge.migration.20260505.stripe_billing.changes_stripe_subscriptions",
+      "from": "migration.20260505.stripe_billing",
+      "to": "table.public.stripe_subscriptions",
+      "type": "migration_changes_table",
+      "label": "Creates stripe_subscriptions table"
+    },
+    {
+      "id": "edge.migration.20260505.stripe_billing.changes_stripe_webhook_events",
+      "from": "migration.20260505.stripe_billing",
+      "to": "table.public.stripe_webhook_events",
+      "type": "migration_changes_table",
+      "label": "Creates stripe_webhook_events table"
+    },
+    {
+      "id": "edge.migration.20260506.desktop_auth.changes_desktop_auth_codes",
+      "from": "migration.20260506.desktop_auth",
+      "to": "table.public.desktop_auth_codes",
+      "type": "migration_changes_table",
+      "label": "Creates desktop_auth_codes table"
+    },
+    {
+      "id": "edge.migration.20260506.desktop_auth.changes_desktop_sessions",
+      "from": "migration.20260506.desktop_auth",
+      "to": "table.public.desktop_sessions",
+      "type": "migration_changes_table",
+      "label": "Creates desktop_sessions table"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "file.next.marketing_pages",
+  "kind": "file",
+  "status": "accepted",
+  "paths": [
+    "next-diffforge/src/pages/index.js",
+    "next-diffforge/src/pages/pricing.js"
+  ],
+  "summary": "Public marketing and pricing pages with product positioning, pricing copy, and authenticated checkout entry points.",
+  "responsibilities": [
+    "Render public product positioning for Diffforge.",
+    "Link users toward signin, signup, dashboard-adjacent, and pricing flows.",
+    "Keep placeholder workspace, lane, feature, and pricing claims clearly non-authoritative in comments until implemented.",
+    "Allow authenticated users to start Pro checkout from the pricing page."
+  ],
+  "invariants": [
+    "Placeholder product claims must not be treated as implemented behavior.",
+    "Pricing page checkout controls must route through the verified server checkout API.",
+    "Marketing links should route only to existing pages or in-page anchors."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/index.js",
+      "symbols": [
+        "Home",
+        "Nav"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/pricing.js",
+      "symbols": [
+        "Pricing",
+        "plans"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "schema_version": 2,
+  "id": "table.public.users",
+  "kind": "table",
+  "workspace_id": "diffforge",
+  "project_id": "next-diffforge",
+  "scope": "project",
+  "database": {
+    "id": "db.main",
+    "name": "main",
+    "engine": "cockroachdb",
+    "schema": "public",
+    "table": "users"
+  },
+  "name": "users",
+  "summary": "Stores local Diffforge users keyed by Appwrite identity with cached billing plan status.",
+  "display": {
+    "label": "users",
+    "group": "Database",
+    "icon": "table",
+    "default_view": "columns",
+    "risk_level": "high"
+  },
+  "compact": {
+    "one_liner": "Maps Appwrite users to local billing status.",
+    "critical_rules": [
+      "Appwrite JWT must be verified before creating or reading a user row."
+    ],
+    "main_columns": [
+      "appwrite_user_id",
+      "email",
+      "plan_status",
+      "stripe_customer_id"
+    ]
+  },
+  "ownership": {
+    "owner": "next-diffforge",
+    "domain": "billing",
+    "tenant_scoped": false,
+    "tenant_key": "",
+    "user_scoped": true,
+    "user_key": "appwrite_user_id"
+  },
+  "data_classification": {
+    "contains_pii": true,
+    "contains_sensitive_auth_data": false,
+    "contains_payment_data": false,
+    "contains_secrets": false,
+    "retention_policy": "Retain while the Appwrite account exists or until account deletion policy is implemented.",
+    "deletion_policy": "Delete or anonymize when account deletion support is implemented."
+  },
+  "columns": {
+    "id": {
+      "id": "column.public.users.id",
+      "name": "id",
+      "sql_type": "UUID",
+      "nullable": false,
+      "primary_key": true,
+      "unique": true,
+      "default": "gen_random_uuid()",
+      "summary": "Local user identifier.",
+      "data_classification": "identifier",
+      "rules": []
+    },
+    "appwrite_user_id": {
+      "id": "column.public.users.appwrite_user_id",
+      "name": "appwrite_user_id",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": false,
+      "unique": true,
+      "default": "",
+      "summary": "External Appwrite account id.",
+      "data_classification": "external_identifier",
+      "rules": [
+        "Must come from a verified Appwrite JWT."
+      ]
+    },
+    "email": {
+      "id": "column.public.users.email",
+      "name": "email",
+      "sql_type": "STRING",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Email from the verified Appwrite account.",
+      "data_classification": "pii",
+      "rules": []
+    },
+    "name": {
+      "id": "column.public.users.name",
+      "name": "name",
+      "sql_type": "STRING",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Display name from the verified Appwrite account.",
+      "data_classification": "pii",
+      "rules": []
+    },
+    "plan_status": {
+      "id": "column.public.users.plan_status",
+      "name": "plan_status",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "free",
+      "summary": "Cached dashboard plan state: free or paid.",
+      "data_classification": "billing_status",
+      "rules": [
+        "Must be derived from latest Stripe subscription state or default to free."
+      ]
+    },
+    "stripe_customer_id": {
+      "id": "column.public.users.stripe_customer_id",
+      "name": "stripe_customer_id",
+      "sql_type": "STRING",
+      "nullable": true,
+      "primary_key": false,
+      "unique": true,
+      "default": "",
+      "summary": "Linked Stripe customer id when known.",
+      "data_classification": "external_identifier",
+      "rules": []
+    }
+  },
+  "indexes": [
+    {
+      "id": "index.public.users.stripe_customer_id",
+      "name": "users_stripe_customer_id_idx",
+      "columns": [
+        "stripe_customer_id"
+      ],
+      "unique": false,
+      "summary": "Finds local users from Stripe customer events."
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint.public.users.appwrite_user_id_unique",
+      "name": "users_appwrite_user_id_key",
+      "kind": "unique",
+      "columns": [
+        "appwrite_user_id"
+      ],
+      "summary": "Prevents duplicate local rows for the same Appwrite user."
+    },
+    {
+      "id": "constraint.public.users.plan_status_check",
+      "name": "users_plan_status_check",
+      "kind": "check",
+      "columns": [
+        "plan_status"
+      ],
+      "summary": "Limits cached plan status to free or paid."
+    }
+  ],
+  "foreign_keys": [],
+  "rls_policies": [],
+  "read_paths": [
+    {
+      "node_id": "route.next.billing_status",
+      "summary": "Reads the verified user's cached plan state.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/billing/status.js"
+        }
+      ]
+    }
+  ],
+  "write_paths": [
+    {
+      "node_id": "route.next.billing_status",
+      "summary": "Upserts the verified Appwrite user on session checks.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/billing/status.js"
+        }
+      ]
+    },
+    {
+      "node_id": "route.next.stripe_webhook",
+      "summary": "Updates plan status after relevant Stripe customer and subscription events.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/stripe/webhook.js"
+        }
+      ]
+    }
+  ],
+  "migrations": [
+    "migration.20260505.stripe_billing"
+  ],
+  "rules": [
+    "rule.next.auth_session_safety",
+    "rule.next.database_server_only"
+  ],
+  "tests": [],
+  "edges": [],
+  "code_refs": [
+    {
+      "project_id": "next-diffforge",
+      "path": "next-diffforge/src/lib/server/billing.js"
+    }
+  ],
+  "review": {
+    "last_schema_hash": "",
+    "last_seen_migration": "policy-diffforge/sql/migrations/20260505_stripe_billing.sql",
+    "last_seen_commit": "",
+    "last_updated_by": "ai",
+    "confidence": 0.8
+  }
+}

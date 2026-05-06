@@ -1,0 +1,27 @@
+{
+  "id": "rule.next.auth_session_safety",
+  "kind": "rule",
+  "status": "accepted",
+  "summary": "Client session state must not imply server authorization for sensitive behavior.",
+  "invariants": [
+    "Client-side dashboard redirects are UX guards, not a substitute for server-side authorization.",
+    "Any future protected API route, database read, database write, billing action, or workspace mutation must perform authorization at the boundary where the action happens.",
+    "Session creation, refresh, and deletion must stay delegated to Appwrite unless a policy proposal changes the auth provider or session model."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/context/AuthContext.js",
+      "symbols": [
+        "AuthProvider",
+        "login",
+        "logout"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/dashboard.js",
+      "symbols": [
+        "Dashboard"
+      ]
+    }
+  ]
+}

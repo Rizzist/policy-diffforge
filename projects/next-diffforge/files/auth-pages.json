@@ -1,0 +1,44 @@
+{
+  "id": "file.next.auth_pages",
+  "kind": "file",
+  "status": "accepted",
+  "paths": [
+    "next-diffforge/src/pages/signin.js",
+    "next-diffforge/src/pages/signup.js",
+    "next-diffforge/src/components/AuthShell.js"
+  ],
+  "summary": "Sign-in and sign-up pages use AuthContext and shared styled auth UI.",
+  "responsibilities": [
+    "Redirect already authenticated users to /dashboard.",
+    "Submit email/password credentials to AuthContext actions.",
+    "Expose Google OAuth login through AuthContext.",
+    "Display Appwrite errors without exposing additional sensitive data."
+  ],
+  "invariants": [
+    "Password inputs must keep a minimum length of 8 unless auth requirements change.",
+    "Authenticated users should not remain on signin or signup pages.",
+    "Auth forms must prevent default browser submission and handle asynchronous failures."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/signin.js",
+      "symbols": [
+        "SignIn",
+        "handleSubmit"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/signup.js",
+      "symbols": [
+        "SignUp",
+        "handleSubmit"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/components/AuthShell.js",
+      "symbols": [
+        "AuthShell"
+      ]
+    }
+  ]
+}

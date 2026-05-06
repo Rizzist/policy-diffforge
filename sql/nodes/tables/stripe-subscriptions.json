@@ -1,0 +1,218 @@
+{
+  "schema_version": 2,
+  "id": "table.public.stripe_subscriptions",
+  "kind": "table",
+  "workspace_id": "diffforge",
+  "project_id": "next-diffforge",
+  "scope": "project",
+  "database": {
+    "id": "db.main",
+    "name": "main",
+    "engine": "cockroachdb",
+    "schema": "public",
+    "table": "stripe_subscriptions"
+  },
+  "name": "stripe_subscriptions",
+  "summary": "Stores latest Stripe subscription state for paid/free status checks.",
+  "display": {
+    "label": "stripe_subscriptions",
+    "group": "Database",
+    "icon": "table",
+    "default_view": "columns",
+    "risk_level": "high"
+  },
+  "compact": {
+    "one_liner": "Caches Stripe subscriptions and their latest status.",
+    "critical_rules": [
+      "Only verified Stripe webhooks may write subscription state.",
+      "Only active or trialing subscriptions count as paid."
+    ],
+    "main_columns": [
+      "stripe_subscription_id",
+      "stripe_customer_id",
+      "status",
+      "price_id",
+      "current_period_end"
+    ]
+  },
+  "ownership": {
+    "owner": "next-diffforge",
+    "domain": "billing",
+    "tenant_scoped": false,
+    "tenant_key": "",
+    "user_scoped": true,
+    "user_key": "stripe_customer_id"
+  },
+  "data_classification": {
+    "contains_pii": false,
+    "contains_sensitive_auth_data": false,
+    "contains_payment_data": true,
+    "contains_secrets": false,
+    "retention_policy": "Retain latest subscription state while billing linkage exists.",
+    "deletion_policy": "Delete or anonymize when billing/account deletion policy is implemented."
+  },
+  "columns": {
+    "stripe_subscription_id": {
+      "id": "column.public.stripe_subscriptions.stripe_subscription_id",
+      "name": "stripe_subscription_id",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": true,
+      "unique": true,
+      "default": "",
+      "summary": "Stripe subscription id.",
+      "data_classification": "external_identifier",
+      "rules": []
+    },
+    "stripe_customer_id": {
+      "id": "column.public.stripe_subscriptions.stripe_customer_id",
+      "name": "stripe_customer_id",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Owning Stripe customer id.",
+      "data_classification": "external_identifier",
+      "rules": []
+    },
+    "status": {
+      "id": "column.public.stripe_subscriptions.status",
+      "name": "status",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Latest Stripe subscription status.",
+      "data_classification": "billing_status",
+      "rules": [
+        "active and trialing are treated as paid for dashboard display."
+      ]
+    },
+    "price_id": {
+      "id": "column.public.stripe_subscriptions.price_id",
+      "name": "price_id",
+      "sql_type": "STRING",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Latest primary Stripe price id when present.",
+      "data_classification": "billing_metadata",
+      "rules": []
+    },
+    "current_period_end": {
+      "id": "column.public.stripe_subscriptions.current_period_end",
+      "name": "current_period_end",
+      "sql_type": "TIMESTAMPTZ",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Current subscription period end when supplied by Stripe.",
+      "data_classification": "billing_metadata",
+      "rules": []
+    },
+    "cancel_at_period_end": {
+      "id": "column.public.stripe_subscriptions.cancel_at_period_end",
+      "name": "cancel_at_period_end",
+      "sql_type": "BOOL",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "false",
+      "summary": "Whether the subscription is scheduled to cancel at period end.",
+      "data_classification": "billing_status",
+      "rules": []
+    },
+    "raw_json": {
+      "id": "column.public.stripe_subscriptions.raw_json",
+      "name": "raw_json",
+      "sql_type": "JSONB",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Latest Stripe subscription object for reconciliation.",
+      "data_classification": "payment_data",
+      "rules": [
+        "Do not store webhook secrets or raw event bodies."
+      ]
+    }
+  },
+  "indexes": [
+    {
+      "id": "index.public.stripe_subscriptions.customer_status",
+      "name": "stripe_subscriptions_customer_status_idx",
+      "columns": [
+        "stripe_customer_id",
+        "status"
+      ],
+      "unique": false,
+      "summary": "Finds paid subscriptions for a customer."
+    }
+  ],
+  "constraints": [],
+  "foreign_keys": [
+    {
+      "id": "fk.public.stripe_subscriptions.stripe_customer_id.stripe_customers.stripe_customer_id",
+      "name": "stripe_subscriptions_stripe_customer_id_fkey",
+      "columns": [
+        "stripe_customer_id"
+      ],
+      "references": {
+        "table": "stripe_customers",
+        "columns": [
+          "stripe_customer_id"
+        ]
+      },
+      "on_delete": "CASCADE",
+      "summary": "Deletes subscription cache if the Stripe customer cache is removed."
+    }
+  ],
+  "rls_policies": [],
+  "read_paths": [
+    {
+      "node_id": "route.next.billing_status",
+      "summary": "Read to derive paid/free status for a verified dashboard user.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/billing/status.js"
+        }
+      ]
+    }
+  ],
+  "write_paths": [
+    {
+      "node_id": "route.next.stripe_webhook",
+      "summary": "Upserts latest Stripe subscription state from verified webhooks.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/stripe/webhook.js"
+        }
+      ]
+    }
+  ],
+  "migrations": [
+    "migration.20260505.stripe_billing"
+  ],
+  "rules": [
+    "rule.next.stripe_webhook_safety"
+  ],
+  "tests": [],
+  "edges": [],
+  "code_refs": [
+    {
+      "project_id": "next-diffforge",
+      "path": "next-diffforge/src/lib/server/stripe-sync.js"
+    }
+  ],
+  "review": {
+    "last_schema_hash": "",
+    "last_seen_migration": "policy-diffforge/sql/migrations/20260505_stripe_billing.sql",
+    "last_seen_commit": "",
+    "last_updated_by": "ai",
+    "confidence": 0.8
+  }
+}

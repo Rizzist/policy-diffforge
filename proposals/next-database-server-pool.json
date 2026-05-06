@@ -1,0 +1,100 @@
+{
+  "id": "proposal.next.database_server_pool",
+  "kind": "policy_proposal",
+  "status": "pending",
+  "project": "next-diffforge",
+  "summary": "Allow a server-only CockroachDB/PostgreSQL connection pool helper for Next.js server code.",
+  "scope": "multi_project",
+  "created_for": "Set up a DATABASE_URL-backed pool/database connection library for server-side use only.",
+  "review_items": [
+    {
+      "kind": "file_responsibility_changed",
+      "target": "file.next.database_server_pool",
+      "summary": "Add next-diffforge/src/lib/server/db.js as the server-only database pool module.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/projects/next-diffforge/files/database-server-pool.json",
+          "value": {
+            "id": "file.next.database_server_pool",
+            "kind": "file",
+            "status": "accepted",
+            "path": "next-diffforge/src/lib/server/db.js",
+            "summary": "Creates and exports a DATABASE_URL-backed pg Pool for server-side CockroachDB/PostgreSQL access.",
+            "responsibilities": [
+              "Read DATABASE_URL only from the server process environment.",
+              "Create one shared pg Pool instance per server runtime.",
+              "Export small helpers for server-side callers to get the pool, run parameterized queries, and close the pool."
+            ],
+            "invariants": [
+              "This module must not be imported by browser/client components or client-side utilities.",
+              "Database reads and writes that expose sensitive data must perform authorization in the server route or server action that calls this module.",
+              "DATABASE_URL must not be exposed through NEXT_PUBLIC variables or client bundles."
+            ],
+            "code_refs": [
+              {
+                "path": "next-diffforge/src/lib/server/db.js",
+                "symbols": [
+                  "getDatabasePool",
+                  "query",
+                  "closeDatabasePool"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "add",
+          "path": "policy-diffforge/projects/next-diffforge/graph.json#/files/-",
+          "value": "policy-diffforge/projects/next-diffforge/files/database-server-pool.json"
+        }
+      ]
+    },
+    {
+      "kind": "rule_added",
+      "target": "rule.next.database_server_only",
+      "summary": "Server database access must remain isolated from client-side code.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/projects/next-diffforge/rules/database-server-only.json",
+          "value": {
+            "id": "rule.next.database_server_only",
+            "kind": "rule",
+            "status": "accepted",
+            "summary": "DATABASE_URL-backed database access is available only to server-side Next.js code.",
+            "invariants": [
+              "Do not import the database pool module from React components that can run in the browser.",
+              "Do not expose DATABASE_URL or derived connection details through API responses, props, logs intended for users, or NEXT_PUBLIC environment variables.",
+              "Every future route or server action that uses the pool for protected data must enforce authorization at that boundary."
+            ],
+            "code_refs": [
+              {
+                "path": "next-diffforge/src/lib/server/db.js",
+                "symbols": [
+                  "assertServerRuntime"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "op": "add",
+          "path": "policy-diffforge/projects/next-diffforge/graph.json#/rules/-",
+          "value": "policy-diffforge/projects/next-diffforge/rules/database-server-only.json"
+        }
+      ]
+    }
+  ],
+  "cross_project_impact": {
+    "producer": null,
+    "consumer": null,
+    "contract": null,
+    "breaking_change": false,
+    "compatibility_notes": "No existing cross-project contract consumes this helper."
+  },
+  "tests_needed": [
+    "npm run lint",
+    "npm run build"
+  ]
+}

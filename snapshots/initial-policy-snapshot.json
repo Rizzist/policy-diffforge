@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "created_for": "initial policy bootstrap",
+  "workspace": "diffforge",
+  "scope": "multi_project",
+  "projects": {
+    "next-diffforge": {
+      "status": "active",
+      "detected_files": [
+        "package.json",
+        "src/lib/appwrite.js",
+        "src/context/AuthContext.js",
+        "src/pages/_app.js",
+        "src/pages/index.js",
+        "src/pages/pricing.js",
+        "src/pages/signin.js",
+        "src/pages/signup.js",
+        "src/pages/dashboard.js",
+        "src/pages/api/hello.js",
+        "src/components/AuthShell.js",
+        "src/lib/server/db.js"
+      ],
+      "detected_scripts": [
+        "dev",
+        "build",
+        "start",
+        "lint"
+      ],
+      "detected_databases": [
+        {
+          "id": "db.main",
+          "engine": "cockroachdb",
+          "default_schema": "public",
+          "tables": []
+        }
+      ]
+    },
+    "rust-diffforge": {
+      "status": "empty",
+      "detected_files": []
+    }
+  }
+}

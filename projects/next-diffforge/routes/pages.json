@@ -1,0 +1,44 @@
+{
+  "id": "routes.next.pages",
+  "kind": "routes",
+  "status": "accepted",
+  "summary": "Public and client-protected Pages Router routes.",
+  "routes": [
+    {
+      "path": "/",
+      "file": "next-diffforge/src/pages/index.js",
+      "access": "public",
+      "summary": "Marketing home page."
+    },
+    {
+      "path": "/pricing",
+      "file": "next-diffforge/src/pages/pricing.js",
+      "access": "public",
+      "summary": "Pricing page with Pro checkout entry point for authenticated users."
+    },
+    {
+      "path": "/billing/checkout",
+      "file": "next-diffforge/src/pages/billing/checkout.js",
+      "access": "client_auth_required",
+      "summary": "Client-side protected checkout launcher that starts the verified server Stripe Checkout flow."
+    },
+    {
+      "path": "/signin",
+      "file": "next-diffforge/src/pages/signin.js",
+      "access": "public_redirects_authenticated",
+      "summary": "Email/password and Google sign-in page."
+    },
+    {
+      "path": "/signup",
+      "file": "next-diffforge/src/pages/signup.js",
+      "access": "public_redirects_authenticated",
+      "summary": "Email/password registration and Google sign-in page."
+    },
+    {
+      "path": "/dashboard",
+      "file": "next-diffforge/src/pages/dashboard.js",
+      "access": "client_auth_required",
+      "summary": "Client-side protected dashboard shell."
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "schema_version": 2,
+  "id": "table.public.stripe_webhook_events",
+  "kind": "table",
+  "workspace_id": "diffforge",
+  "project_id": "next-diffforge",
+  "scope": "project",
+  "database": {
+    "id": "db.main",
+    "name": "main",
+    "engine": "cockroachdb",
+    "schema": "public",
+    "table": "stripe_webhook_events"
+  },
+  "name": "stripe_webhook_events",
+  "summary": "Stores low-noise Stripe event receipt metadata for idempotent webhook processing.",
+  "display": {
+    "label": "stripe_webhook_events",
+    "group": "Database",
+    "icon": "table",
+    "default_view": "columns",
+    "risk_level": "medium"
+  },
+  "compact": {
+    "one_liner": "Tracks processed Stripe event ids without storing raw webhook bodies.",
+    "critical_rules": [
+      "Stripe event ids must be unique.",
+      "Raw webhook payload bodies are not stored."
+    ],
+    "main_columns": [
+      "stripe_event_id",
+      "event_type",
+      "processing_status"
+    ]
+  },
+  "ownership": {
+    "owner": "next-diffforge",
+    "domain": "billing",
+    "tenant_scoped": false,
+    "tenant_key": "",
+    "user_scoped": false,
+    "user_key": ""
+  },
+  "data_classification": {
+    "contains_pii": false,
+    "contains_sensitive_auth_data": false,
+    "contains_payment_data": false,
+    "contains_secrets": false,
+    "retention_policy": "Retain event ids for webhook idempotency and audit; prune policy can be added later.",
+    "deletion_policy": "No deletion schedule is defined yet."
+  },
+  "columns": {
+    "stripe_event_id": {
+      "id": "column.public.stripe_webhook_events.stripe_event_id",
+      "name": "stripe_event_id",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": true,
+      "unique": true,
+      "default": "",
+      "summary": "Stripe event id used for idempotency.",
+      "data_classification": "external_identifier",
+      "rules": []
+    },
+    "event_type": {
+      "id": "column.public.stripe_webhook_events.event_type",
+      "name": "event_type",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Stripe event type.",
+      "data_classification": "billing_metadata",
+      "rules": []
+    },
+    "processed_at": {
+      "id": "column.public.stripe_webhook_events.processed_at",
+      "name": "processed_at",
+      "sql_type": "TIMESTAMPTZ",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "now()",
+      "summary": "Time the webhook route handled the event.",
+      "data_classification": "operational_metadata",
+      "rules": []
+    },
+    "processing_status": {
+      "id": "column.public.stripe_webhook_events.processing_status",
+      "name": "processing_status",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Whether the event was processed, ignored, or failed.",
+      "data_classification": "operational_metadata",
+      "rules": []
+    },
+    "error_message": {
+      "id": "column.public.stripe_webhook_events.error_message",
+      "name": "error_message",
+      "sql_type": "STRING",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Short processing error message when handling failed.",
+      "data_classification": "operational_metadata",
+      "rules": [
+        "Must not include secrets or raw webhook bodies."
+      ]
+    }
+  },
+  "indexes": [
+    {
+      "id": "index.public.stripe_webhook_events.type_processed",
+      "name": "stripe_webhook_events_type_processed_idx",
+      "columns": [
+        "event_type",
+        "processed_at"
+      ],
+      "unique": false,
+      "summary": "Supports reviewing recent webhook activity by event type."
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint.public.stripe_webhook_events.processing_status_check",
+      "name": "stripe_webhook_events_processing_status_check",
+      "kind": "check",
+      "columns": [
+        "processing_status"
+      ],
+      "summary": "Limits webhook receipt status values."
+    }
+  ],
+  "foreign_keys": [],
+  "rls_policies": [],
+  "read_paths": [],
+  "write_paths": [
+    {
+      "node_id": "route.next.stripe_webhook",
+      "summary": "Records Stripe event handling outcome after signature verification.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/stripe/webhook.js"
+        }
+      ]
+    }
+  ],
+  "migrations": [
+    "migration.20260505.stripe_billing"
+  ],
+  "rules": [
+    "rule.next.stripe_webhook_safety"
+  ],
+  "tests": [],
+  "edges": [],
+  "code_refs": [
+    {
+      "project_id": "next-diffforge",
+      "path": "next-diffforge/src/lib/server/stripe-sync.js"
+    }
+  ],
+  "review": {
+    "last_schema_hash": "",
+    "last_seen_migration": "policy-diffforge/sql/migrations/20260505_stripe_billing.sql",
+    "last_seen_commit": "",
+    "last_updated_by": "ai",
+    "confidence": 0.8
+  }
+}

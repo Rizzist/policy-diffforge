@@ -1,0 +1,22 @@
+{
+  "id": "file.next.app_provider",
+  "kind": "file",
+  "status": "accepted",
+  "path": "next-diffforge/src/pages/_app.js",
+  "summary": "Wraps every page in AuthProvider and imports global styles.",
+  "responsibilities": [
+    "Ensure all pages can consume AuthContext.",
+    "Keep global stylesheet loaded once through Next.js app entry."
+  ],
+  "invariants": [
+    "AuthProvider must continue wrapping page components while any page depends on useAuth."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/_app.js",
+      "symbols": [
+        "App"
+      ]
+    }
+  ]
+}

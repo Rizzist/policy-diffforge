@@ -1,0 +1,43 @@
+{
+  "id": "flow.next.appwrite_auth",
+  "kind": "flow",
+  "status": "accepted",
+  "summary": "User authentication is delegated to Appwrite account sessions.",
+  "step_order": [
+    "initialize_appwrite",
+    "refresh_existing_user",
+    "email_password_login",
+    "google_oauth_login",
+    "register_then_login",
+    "logout"
+  ],
+  "steps": {
+    "initialize_appwrite": "AuthProvider pings Appwrite and then refreshes the current user during initial mount.",
+    "refresh_existing_user": "refreshUser calls account.get(), stores the returned user, and returns null if unauthenticated.",
+    "email_password_login": "login creates an Appwrite email/password session and refreshes the current user.",
+    "google_oauth_login": "loginWithGoogle starts Google OAuth with /dashboard as success and /signin as failure path.",
+    "register_then_login": "register creates a user with a unique Appwrite id and then performs email/password login.",
+    "logout": "logout deletes the current Appwrite session and clears local user state."
+  },
+  "conditions": [
+    "Auth initialization must eventually set loading to false for mounted providers.",
+    "Errors from login and registration are displayed by the pages that submit forms.",
+    "Google OAuth requires browser window.location and therefore runs from client-side interaction."
+  ],
+  "connected_rules": [
+    "policy-diffforge/projects/next-diffforge/rules/auth-session-safety.json"
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/context/AuthContext.js",
+      "symbols": [
+        "AuthProvider",
+        "login",
+        "loginWithGoogle",
+        "register",
+        "logout",
+        "refreshUser"
+      ]
+    }
+  ]
+}

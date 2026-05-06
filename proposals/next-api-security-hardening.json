@@ -1,0 +1,86 @@
+{
+  "schema_version": 2,
+  "id": "proposal.next.api_security_hardening",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Harden Next.js API endpoints against oversized input, malformed authorization, unsafe checkout redirects, and unbounded Stripe webhook payloads.",
+  "scope": "multi_project",
+  "project_id": "next-diffforge",
+  "review_items": [
+    {
+      "kind": "route_contract_changed",
+      "target_id": "route.next.hello",
+      "summary": "The placeholder hello endpoint should only answer GET instead of every HTTP method."
+    },
+    {
+      "kind": "route_contract_changed",
+      "target_id": "route.next.billing_status",
+      "summary": "Billing status continues to require POST plus Appwrite JWT, and now rejects request bodies because no client input is needed."
+    },
+    {
+      "kind": "route_contract_changed",
+      "target_id": "route.next.billing_checkout",
+      "summary": "Billing checkout continues to require POST plus Appwrite JWT, and now rejects request bodies because price, plan, customer, and redirect choices are server-owned."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "route.next.billing_checkout",
+      "summary": "Checkout redirects must be validated as Stripe-hosted HTTPS URLs before being returned or followed."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "route.next.stripe_webhook",
+      "summary": "Stripe webhook reads are bounded by a maximum raw body size and must parse to a minimal Stripe event shape after signature verification."
+    },
+    {
+      "kind": "data_access_changed",
+      "target_id": "table.public.users",
+      "summary": "Verified Appwrite identity fields are normalized and length-bounded before writes to local user rows or Stripe metadata."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "database_queries",
+      "summary": "Existing SQL calls already use parameterized pg placeholders; no dynamic SQL policy change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "add",
+      "path": "policy-diffforge/projects/next-diffforge/rules/api-input-safety.json",
+      "summary": "Document accepted API input boundaries and sanitization invariants."
+    },
+    {
+      "op": "replace",
+      "path": "policy-diffforge/projects/next-diffforge/routes/api.json#/routes/route.next.billing_status/request_shape",
+      "summary": "Clarify that billing status accepts only Authorization and no body."
+    },
+    {
+      "op": "replace",
+      "path": "policy-diffforge/projects/next-diffforge/routes/api.json#/routes/route.next.billing_checkout/request_shape",
+      "summary": "Clarify that checkout accepts only Authorization and no body."
+    },
+    {
+      "op": "replace",
+      "path": "policy-diffforge/projects/next-diffforge/routes/api.json#/routes/route.next.stripe_webhook/request_shape",
+      "summary": "Clarify that webhooks require Stripe-Signature and a bounded raw Stripe event payload."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "Normal browser clients already send no body to billing endpoints. Malformed or oversized direct requests will be rejected earlier."
+  },
+  "tests": [
+    {
+      "command": "npm run lint",
+      "summary": "Validate JavaScript and Next.js linting."
+    },
+    {
+      "command": "npm run build",
+      "summary": "Validate production build after endpoint hardening."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-05"
+}

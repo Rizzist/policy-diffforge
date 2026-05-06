@@ -1,0 +1,34 @@
+{
+  "id": "flow.next.protected_dashboard",
+  "kind": "flow",
+  "status": "accepted",
+  "summary": "Dashboard access is guarded by client-side AuthContext state.",
+  "step_order": [
+    "read_auth_state",
+    "redirect_unauthenticated",
+    "render_authenticated_shell",
+    "sign_out"
+  ],
+  "steps": {
+    "read_auth_state": "Dashboard reads loading, logout, and user from useAuth.",
+    "redirect_unauthenticated": "When loading is false and user is null, Dashboard replaces the route with /signin.",
+    "render_authenticated_shell": "When auth loading has completed, Dashboard greets the current user by name when available.",
+    "sign_out": "The sign-out button calls logout and then pushes /signin."
+  },
+  "conditions": [
+    "Redirect waits for loading to be false so initial auth refresh can complete.",
+    "Dashboard page content must not become a source of privileged data unless server-side or API authorization is added."
+  ],
+  "connected_rules": [
+    "policy-diffforge/projects/next-diffforge/rules/auth-session-safety.json"
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/dashboard.js",
+      "symbols": [
+        "Dashboard",
+        "handleLogout"
+      ]
+    }
+  ]
+}

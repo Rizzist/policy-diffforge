@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "project": "rust-diffforge",
+  "path": "rust-diffforge",
+  "status": "empty",
+  "summary": "No source, manifest, or build files were detected at policy creation time.",
+  "files": [],
+  "flows": [],
+  "routes": [],
+  "rules": [],
+  "tests": [],
+  "contracts": [],
+  "gaps": [
+    "Add project policy nodes when Rust source or manifests are introduced."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "file.next.appwrite_client",
+  "kind": "file",
+  "status": "accepted",
+  "path": "next-diffforge/src/lib/appwrite.js",
+  "summary": "Creates shared Appwrite Client, Account, and Databases instances.",
+  "responsibilities": [
+    "Configure the Appwrite endpoint.",
+    "Configure the Appwrite project id.",
+    "Export reusable Appwrite service clients for frontend code."
+  ],
+  "invariants": [
+    "Account session operations must use the exported Appwrite Account instance.",
+    "Endpoint or project id changes affect all Appwrite authentication behavior and require policy review."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/lib/appwrite.js",
+      "symbols": [
+        "client",
+        "account",
+        "databases"
+      ]
+    }
+  ]
+}

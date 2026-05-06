@@ -1,0 +1,27 @@
+{
+  "id": "rule.next.stripe_webhook_safety",
+  "kind": "rule",
+  "status": "accepted",
+  "summary": "Stripe webhook data must be verified, idempotent, and low-noise before it changes billing state.",
+  "invariants": [
+    "Webhook requests must verify Stripe-Signature with STRIPE_WEBHOOK_SECRET before processing event data.",
+    "The webhook route must ignore unrelated event types after recording a minimal ignored receipt.",
+    "The webhook route must use Stripe event ids as idempotency keys and avoid storing raw webhook bodies.",
+    "Only latest Stripe customer and subscription object data should be stored for billing reconciliation.",
+    "Payment method details, card numbers, webhook secrets, and Stripe API secrets must never be stored in policy JSON or application tables."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/api/stripe/webhook.js",
+      "symbols": [
+        "handler"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/lib/server/stripe-sync.js",
+      "symbols": [
+        "handleStripeEvent"
+      ]
+    }
+  ]
+}

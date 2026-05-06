@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "project": "next-diffforge",
+  "path": "next-diffforge",
+  "framework": "Next.js Pages Router",
+  "language": "JavaScript",
+  "package_manager": "npm",
+  "summary": "Frontend application for Diffforge with Appwrite account sessions and placeholder product surfaces.",
+  "commands": {
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "lint": "npm run lint"
+  },
+  "files": [
+    "policy-diffforge/projects/next-diffforge/files/appwrite-client.json",
+    "policy-diffforge/projects/next-diffforge/files/auth-context.json",
+    "policy-diffforge/projects/next-diffforge/files/app-provider.json",
+    "policy-diffforge/projects/next-diffforge/files/auth-pages.json",
+    "policy-diffforge/projects/next-diffforge/files/dashboard-page.json",
+    "policy-diffforge/projects/next-diffforge/files/marketing-pages.json",
+    "policy-diffforge/projects/next-diffforge/files/api-hello.json",
+    "policy-diffforge/projects/next-diffforge/files/database-server-pool.json",
+    "policy-diffforge/projects/next-diffforge/files/billing-server.json",
+    "policy-diffforge/projects/next-diffforge/files/stripe-webhook-server.json"
+  ],
+  "flows": [
+    "policy-diffforge/projects/next-diffforge/flows/appwrite-auth.json",
+    "policy-diffforge/projects/next-diffforge/flows/protected-dashboard.json",
+    "policy-diffforge/projects/next-diffforge/flows/placeholder-product-marketing.json",
+    "policy-diffforge/projects/next-diffforge/flows/billing-status.json",
+    "policy-diffforge/projects/next-diffforge/flows/stripe-checkout.json",
+    "policy-diffforge/projects/next-diffforge/flows/stripe-webhook-sync.json"
+  ],
+  "routes": [
+    "policy-diffforge/projects/next-diffforge/routes/pages.json",
+    "policy-diffforge/projects/next-diffforge/routes/api.json"
+  ],
+  "rules": [
+    "policy-diffforge/projects/next-diffforge/rules/auth-session-safety.json",
+    "policy-diffforge/projects/next-diffforge/rules/api-input-safety.json",
+    "policy-diffforge/projects/next-diffforge/rules/placeholder-copy-boundary.json",
+    "policy-diffforge/projects/next-diffforge/rules/stripe-webhook-safety.json"
+  ],
+  "tests": [
+    "policy-diffforge/projects/next-diffforge/tests/checks.json"
+  ],
+  "databases": [],
+  "database_tables": [],
+  "migrations": [],
+  "sql_graph": "policy-diffforge/sql/graph.json",
+  "sql_refs": [
+    "db.main",
+    "table.public.users",
+    "table.public.stripe_customers",
+    "table.public.stripe_subscriptions",
+    "table.public.stripe_webhook_events",
+    "migration.20260505.stripe_billing"
+  ],
+  "contracts": []
+}

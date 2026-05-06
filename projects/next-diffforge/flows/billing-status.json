@@ -1,0 +1,51 @@
+{
+  "id": "flow.next.billing_status",
+  "kind": "flow",
+  "status": "pending",
+  "summary": "Authenticated users get a server-verified local user profile and free or paid dashboard status.",
+  "step_order": [
+    "mint_appwrite_jwt",
+    "verify_api_identity",
+    "upsert_local_user",
+    "derive_plan_status",
+    "return_local_user_profile",
+    "render_dashboard_status"
+  ],
+  "steps": {
+    "mint_appwrite_jwt": "AuthContext creates an Appwrite JWT for the current session.",
+    "verify_api_identity": "/api/billing/status verifies the JWT with Appwrite before trusting the caller.",
+    "upsert_local_user": "The API creates or updates public.users from verified Appwrite account data.",
+    "derive_plan_status": "The API checks latest Stripe subscriptions and sets users.plan_status to paid only for active or trialing subscriptions.",
+    "return_local_user_profile": "The API returns the local users row fields needed by the dashboard, including id, Appwrite id, email, name, plan status, Stripe customer id, and timestamps.",
+    "render_dashboard_status": "Dashboard displays the returned free or paid state in the General section with the verified local user information."
+  },
+  "conditions": [
+    "Unauthenticated or invalid JWT requests must return 401.",
+    "Missing Stripe customer or subscription data must display free.",
+    "Billing status must not be accepted from client-controlled request bodies.",
+    "Dashboard user details from SQL must only come from the server response after Appwrite JWT verification."
+  ],
+  "connected_rules": [
+    "policy-diffforge/projects/next-diffforge/rules/auth-session-safety.json"
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/context/AuthContext.js",
+      "symbols": [
+        "refreshBillingStatus"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/api/billing/status.js",
+      "symbols": [
+        "handler"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/dashboard.js",
+      "symbols": [
+        "Dashboard"
+      ]
+    }
+  ]
+}

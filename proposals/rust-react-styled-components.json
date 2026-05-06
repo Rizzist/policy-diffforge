@@ -1,0 +1,97 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.react_styled_components",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Convert the rust-diffforge Tauri WebView frontend from vanilla JavaScript and CSS to React with styled-components and styled-icons, matching the Next.js project's UI implementation pattern.",
+  "scope": "multi_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "project.rust-diffforge.frontend",
+      "summary": "The desktop WebView frontend becomes a Vite React app instead of static HTML plus imperative DOM event wiring."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "project.rust-diffforge.login_shell",
+      "summary": "The placeholder sign-in and backend status behaviors are preserved but managed through React component state."
+    },
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "project.rust-diffforge.styles",
+      "summary": "Regular CSS is replaced by styled-components, with global reset/body styling supplied by createGlobalStyle."
+    },
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "project.rust-diffforge.icons",
+      "summary": "The desktop UI may use styled-icons for button and status affordances, following next-diffforge's dependency pattern."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "route.next.hello",
+      "summary": "The desktop app continues to consume the same hosted /api/hello connectivity endpoint without changing the producer contract."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/package.json",
+      "summary": "Add React, styled-components, styled-icons, and the Vite React plugin dependencies."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/vite.config.js",
+      "summary": "Enable the Vite React plugin while preserving the existing Tauri development server settings."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/index.html",
+      "summary": "Reduce static markup to the React mount node."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/main.js",
+      "summary": "Replace imperative DOM behavior with a React app rendered into the Vite root."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Add the React login shell with styled-components and styled-icons."
+    },
+    {
+      "op": "remove",
+      "path": "rust-diffforge/src/styles.css",
+      "summary": "Remove regular CSS after moving visual styling into styled-components."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The visible desktop preview and backend connectivity check stay equivalent. The change affects frontend implementation and bundle dependencies only."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm install",
+      "working_directory": "rust-diffforge",
+      "summary": "Install and lock React, styled-components, styled-icons, and Vite React plugin dependencies."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate the React Vite frontend build."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06"
+}

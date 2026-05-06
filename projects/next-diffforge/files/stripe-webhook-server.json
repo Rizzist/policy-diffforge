@@ -1,0 +1,33 @@
+{
+  "id": "file.next.stripe_webhook_server",
+  "kind": "file",
+  "status": "pending",
+  "path": "next-diffforge/src/lib/server/stripe-sync.js",
+  "summary": "Processes verified Stripe webhook events into latest CockroachDB billing state.",
+  "responsibilities": [
+    "Ignore unrelated Stripe event types after minimal receipt tracking.",
+    "Upsert latest Stripe customer and subscription objects.",
+    "Use Stripe event ids for idempotent webhook processing."
+  ],
+  "invariants": [
+    "Webhook signature verification must happen before this module receives event data.",
+    "Raw webhook bodies, Stripe secrets, and payment method details must not be stored.",
+    "Only active or trialing subscriptions may make the dashboard status paid."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/lib/server/stripe-webhook.js",
+      "symbols": [
+        "readRawBody",
+        "verifyStripeEvent"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/lib/server/stripe-sync.js",
+      "symbols": [
+        "handleStripeEvent",
+        "recordFailedStripeEvent"
+      ]
+    }
+  ]
+}

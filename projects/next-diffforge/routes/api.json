@@ -1,0 +1,109 @@
+{
+  "id": "routes.next.api",
+  "kind": "routes",
+  "status": "accepted",
+  "summary": "Next.js API routes include placeholder, billing status, Stripe checkout, and Stripe webhook endpoints.",
+  "routes": [
+    {
+      "path": "/api/hello",
+      "file": "next-diffforge/src/pages/api/hello.js",
+      "methods": [
+        "GET"
+      ],
+      "access": "public_placeholder",
+      "response_shape": {
+        "status": 200,
+        "body": {
+          "name": "string"
+        }
+      },
+      "summary": "Returns a static JSON object for GET requests only."
+    },
+    {
+      "id": "route.next.billing_status",
+      "path": "/api/billing/status",
+      "file": "next-diffforge/src/pages/api/billing/status.js",
+      "methods": [
+        "POST"
+      ],
+      "access": "appwrite_jwt_required",
+      "request_shape": {
+        "headers": {
+          "authorization": "Bearer Appwrite JWT"
+        },
+        "body": "none"
+      },
+      "response_shape": {
+        "status": 200,
+        "body": {
+          "planStatus": "free|paid",
+          "stripeCustomerId": "string|null",
+          "user": {
+            "id": "uuid",
+            "appwriteUserId": "string",
+            "email": "string|null",
+            "name": "string|null",
+            "planStatus": "free|paid",
+            "stripeCustomerId": "string|null",
+            "createdAt": "timestamp",
+            "updatedAt": "timestamp"
+          }
+        }
+      },
+      "debug_response_shape": {
+        "status": 500,
+        "body": {
+          "error": "string",
+          "detail": "temporary bounded server error message"
+        },
+        "temporary": true
+      },
+      "summary": "Verifies the Appwrite JWT, upserts the local user row, derives free or paid status, and returns the local user profile for dashboard display."
+    },
+    {
+      "id": "route.next.billing_checkout",
+      "path": "/api/billing/checkout",
+      "file": "next-diffforge/src/pages/api/billing/checkout.js",
+      "methods": [
+        "POST"
+      ],
+      "access": "appwrite_jwt_required",
+      "request_shape": {
+        "headers": {
+          "authorization": "Bearer Appwrite JWT"
+        },
+        "body": "none"
+      },
+      "response_shape": {
+        "status": 200,
+        "body": {
+          "url": "stripe_checkout_url"
+        }
+      },
+      "summary": "Verifies the Appwrite JWT, upserts the local user row, and creates a Stripe-hosted subscription Checkout Session for the configured Pro price."
+    },
+    {
+      "id": "route.next.stripe_webhook",
+      "path": "/api/stripe/webhook",
+      "public_url": "https://diffforge.ai/api/stripe/webhook",
+      "file": "next-diffforge/src/pages/api/stripe/webhook.js",
+      "methods": [
+        "POST"
+      ],
+      "access": "stripe_signature_required",
+      "request_shape": {
+        "headers": {
+          "stripe-signature": "Stripe webhook signature"
+        },
+        "body": "bounded raw Stripe event payload"
+      },
+      "response_shape": {
+        "status": 200,
+        "body": {
+          "received": true
+        }
+      },
+      "summary": "Verifies Stripe-Signature against the raw body, ignores unrelated event types, and syncs latest Stripe customer/subscription state."
+    }
+  ]
+}

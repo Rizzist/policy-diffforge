@@ -1,0 +1,241 @@
+{
+  "id": "proposal.next.stripe_billing_sync",
+  "kind": "policy_proposal",
+  "status": "pending",
+  "project": "next-diffforge",
+  "summary": "Add CockroachDB-backed user and Stripe subscription state synced by a verified Stripe webhook.",
+  "scope": "multi_project",
+  "created_for": "Set up Stripe billing state, receive low-noise webhooks, and show free or paid status on the dashboard.",
+  "review_items": [
+    {
+      "kind": "database_table_added",
+      "target": "table.public.users",
+      "summary": "Add local users keyed by Appwrite user id with cached plan status.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/sql/nodes/tables/users.json",
+          "value": "table policy for public.users"
+        }
+      ],
+      "compatibility": {
+        "breaking_change": false,
+        "backfill_required": false,
+        "rollback_supported": true
+      }
+    },
+    {
+      "kind": "database_table_added",
+      "target": "table.public.stripe_customers",
+      "summary": "Add Stripe customer cache linked to local users.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/sql/nodes/tables/stripe-customers.json",
+          "value": "table policy for public.stripe_customers"
+        }
+      ],
+      "compatibility": {
+        "breaking_change": false,
+        "backfill_required": false,
+        "rollback_supported": true
+      }
+    },
+    {
+      "kind": "database_table_added",
+      "target": "table.public.stripe_subscriptions",
+      "summary": "Add latest Stripe subscription state used to determine free or paid dashboard status.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/sql/nodes/tables/stripe-subscriptions.json",
+          "value": "table policy for public.stripe_subscriptions"
+        }
+      ],
+      "compatibility": {
+        "breaking_change": false,
+        "backfill_required": false,
+        "rollback_supported": true
+      }
+    },
+    {
+      "kind": "database_table_added",
+      "target": "table.public.stripe_webhook_events",
+      "summary": "Add Stripe event receipt log for idempotent webhook handling.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/sql/nodes/tables/stripe-webhook-events.json",
+          "value": "table policy for public.stripe_webhook_events"
+        }
+      ],
+      "compatibility": {
+        "breaking_change": false,
+        "backfill_required": false,
+        "rollback_supported": true
+      }
+    },
+    {
+      "kind": "database_migration_added",
+      "target": "migration.20260505.stripe_billing",
+      "summary": "Create CockroachDB tables and indexes for users and Stripe billing sync.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/sql/migrations/20260505_stripe_billing.sql",
+          "value": "CockroachDB SQL migration"
+        }
+      ],
+      "compatibility": {
+        "breaking_change": false,
+        "backfill_required": false,
+        "rollback_supported": true
+      }
+    },
+    {
+      "kind": "route_contract_changed",
+      "target": "routes.next.api",
+      "summary": "Add /api/billing/status and /api/stripe/webhook server routes.",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/routes/api.json",
+          "value": "route policy includes billing status and Stripe webhook routes"
+        }
+      ]
+    },
+    {
+      "kind": "function_logic_changed",
+      "target": "flow.next.billing_status",
+      "summary": "Dashboard requests a verified server status check and displays free or paid billing state with local SQL user profile data.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/projects/next-diffforge/flows/billing-status.json",
+          "value": "billing status flow policy"
+        }
+      ]
+    },
+    {
+      "kind": "route_contract_changed",
+      "target": "route.next.billing_status",
+      "summary": "/api/billing/status returns the verified local SQL user profile alongside plan status so the dashboard General section can use server-derived account data.",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/routes/api.json#/routes/route.next.billing_status/response_shape",
+          "value": "billing status response includes planStatus, stripeCustomerId, and local user profile fields"
+        }
+      ]
+    },
+    {
+      "kind": "route_contract_changed",
+      "target": "route.next.billing_checkout",
+      "summary": "Add /api/billing/checkout to create a Stripe-hosted subscription Checkout Session for verified Appwrite users.",
+      "patches": [
+        {
+          "op": "add",
+          "path": "policy-diffforge/projects/next-diffforge/routes/api.json#/routes/route.next.billing_checkout",
+          "value": "checkout route verifies Appwrite JWT, upserts local SQL user, creates Stripe Checkout Session, and returns URL"
+        },
+        {
+          "op": "add",
+          "path": "policy-diffforge/projects/next-diffforge/flows/stripe-checkout.json",
+          "value": "Stripe checkout flow policy"
+        },
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/routes/pages.json",
+          "value": "page routes include /billing/checkout client-side checkout launcher"
+        }
+      ]
+    },
+    {
+      "kind": "function_logic_changed",
+      "target": "file.next.auth_context",
+      "summary": "AuthContext exposes startCheckout so authenticated UI can request a server-created Stripe Checkout URL.",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/files/auth-context.json",
+          "value": "auth context policy includes server-verified checkout start action"
+        }
+      ]
+    },
+    {
+      "kind": "function_logic_changed",
+      "target": "file.next.dashboard_page",
+      "summary": "Prevent repeated automatic billing status requests after a status API failure and show a manual retry control.",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/files/dashboard-page.json",
+          "value": "dashboard policy includes no automatic retry loop after billing status failure"
+        }
+      ]
+    },
+    {
+      "kind": "route_contract_changed",
+      "target": "route.next.billing_status",
+      "summary": "Temporarily include bounded billing status endpoint error details in 500 responses and render them on the dashboard for production debugging.",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/routes/api.json#/routes/route.next.billing_status/debug_response_shape",
+          "value": "temporary 500 response may include detail"
+        },
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/files/dashboard-page.json",
+          "value": "dashboard temporarily displays bounded endpoint error details"
+        }
+      ]
+    },
+    {
+      "kind": "function_logic_changed",
+      "target": "flow.next.stripe_checkout",
+      "summary": "Enable Stripe-hosted promotion code entry on Pro Checkout Sessions.",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/flows/stripe-checkout.json",
+          "value": "checkout flow allows Stripe-managed promotion code entry"
+        }
+      ]
+    }
+  ],
+  "affected_tables": [
+    "table.public.users",
+    "table.public.stripe_customers",
+    "table.public.stripe_subscriptions",
+    "table.public.stripe_webhook_events"
+  ],
+  "affected_columns": [
+    "public.users.appwrite_user_id",
+    "public.users.plan_status",
+    "public.users.stripe_customer_id",
+    "public.stripe_customers.stripe_customer_id",
+    "public.stripe_subscriptions.status",
+    "public.stripe_subscriptions.raw_json",
+    "public.stripe_webhook_events.stripe_event_id"
+  ],
+  "security_data_rules": [
+    "Stripe webhook requests must verify the Stripe-Signature header against STRIPE_WEBHOOK_SECRET before processing.",
+    "Billing status API requests must verify the caller's Appwrite JWT before reading or writing user billing state.",
+    "Temporary billing status debug errors must remain bounded and must be removed after production diagnosis.",
+    "Checkout API requests must verify the caller's Appwrite JWT and must not accept client-provided price IDs or redirect domains.",
+    "Stripe raw event payloads are not stored; only latest relevant Stripe object JSON and low-noise event processing metadata are retained."
+  ],
+  "cross_project_impact": {
+    "producer": "next-diffforge",
+    "consumer": null,
+    "contract": null,
+    "breaking_change": false,
+    "compatibility_notes": "No other project consumes the billing routes or CockroachDB schema yet."
+  },
+  "tests_needed": [
+    "node policy-diffforge/validators/validate-policy.js",
+    "npm run lint",
+    "npm run build"
+  ]
+}

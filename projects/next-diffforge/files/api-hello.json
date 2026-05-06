@@ -1,0 +1,21 @@
+{
+  "id": "file.next.api_hello",
+  "kind": "file",
+  "status": "accepted",
+  "path": "next-diffforge/src/pages/api/hello.js",
+  "summary": "Default placeholder Next.js API route returning a static JSON object.",
+  "responsibilities": [
+    "Respond to /api/hello with HTTP 200 and a JSON body."
+  ],
+  "invariants": [
+    "This route is placeholder behavior and must not be used as an authenticated or production data contract without a policy update."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/api/hello.js",
+      "symbols": [
+        "handler"
+      ]
+    }
+  ]
+}

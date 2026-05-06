@@ -1,0 +1,39 @@
+{
+  "id": "rule.next.api_input_safety",
+  "kind": "rule",
+  "status": "pending",
+  "summary": "Public API endpoints must accept only the smallest required request shape and bound untrusted input before database or billing side effects.",
+  "invariants": [
+    "Billing API routes must verify Appwrite JWTs at the route boundary and reject request bodies because billing plan, customer, and redirect choices are server-owned.",
+    "Authorization headers must be length-bounded and syntactically safe before being forwarded to Appwrite verification.",
+    "Verified Appwrite identity fields must be normalized and length-bounded before SQL writes or Stripe metadata use.",
+    "Stripe webhook routes must bound raw body size, verify Stripe-Signature before parsing JSON, and reject malformed event envelopes.",
+    "Checkout redirects must be HTTPS Stripe-hosted URLs before being returned by the server or followed by the client.",
+    "Database calls must continue to use parameterized queries instead of concatenating user-controlled SQL."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/lib/server/request-security.js",
+      "symbols": [
+        "getSafeBearerToken",
+        "rejectUnexpectedBody",
+        "isSafeStripeCheckoutUrl"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/lib/server/stripe-webhook.js",
+      "symbols": [
+        "readRawBody",
+        "verifyStripeEvent"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/context/AuthContext.js",
+      "symbols": [
+        "login",
+        "register",
+        "startCheckout"
+      ]
+    }
+  ]
+}

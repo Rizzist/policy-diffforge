@@ -1,0 +1,45 @@
+{
+  "id": "flow.next.stripe_webhook_sync",
+  "kind": "flow",
+  "status": "pending",
+  "summary": "Verified Stripe webhooks update latest billing state with low-noise idempotent processing.",
+  "step_order": [
+    "receive_raw_body",
+    "verify_signature",
+    "record_event",
+    "ignore_unrelated_events",
+    "upsert_latest_stripe_data",
+    "refresh_user_plan_status"
+  ],
+  "steps": {
+    "receive_raw_body": "The webhook route disables body parsing and reads the raw request body.",
+    "verify_signature": "The route verifies Stripe-Signature with STRIPE_WEBHOOK_SECRET before parsing the event.",
+    "record_event": "The event id is stored in stripe_webhook_events to prevent duplicate processing.",
+    "ignore_unrelated_events": "Unrelated Stripe event types are recorded as ignored and do not update billing state.",
+    "upsert_latest_stripe_data": "Handled customer, checkout session, and subscription events update latest Stripe cache tables.",
+    "refresh_user_plan_status": "Linked users are marked paid only when active or trialing subscriptions exist."
+  },
+  "conditions": [
+    "Invalid signatures must return 400.",
+    "Oversized or malformed webhook payloads must return 400 before database writes.",
+    "Duplicate events must return success without replaying updates.",
+    "Raw webhook payloads and secrets must not be stored."
+  ],
+  "connected_rules": [
+    "policy-diffforge/projects/next-diffforge/rules/stripe-webhook-safety.json"
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/api/stripe/webhook.js",
+      "symbols": [
+        "handler"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/lib/server/stripe-sync.js",
+      "symbols": [
+        "handleStripeEvent"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "id": "file.next.auth_context",
+  "kind": "file",
+  "status": "accepted",
+  "path": "next-diffforge/src/context/AuthContext.js",
+  "summary": "Provides Appwrite auth state and session actions to the Next.js app.",
+  "responsibilities": [
+    "Load the current Appwrite account on app initialization.",
+    "Expose email/password login, Google OAuth login, registration, logout, ping, user refresh, billing status refresh, and Stripe checkout start actions.",
+    "Represent loading, user, ping status, and Appwrite errors in React state."
+  ],
+  "functions": [
+    {
+      "name": "AuthProvider",
+      "summary": "Wraps children with auth state and actions."
+    },
+    {
+      "name": "refreshUser",
+      "summary": "Reads the current Appwrite account, refreshes billing status when authenticated, and clears user state when unauthenticated."
+    },
+    {
+      "name": "refreshBillingStatus",
+      "summary": "Creates an Appwrite JWT for the current session and asks the server billing API for free or paid status."
+    },
+    {
+      "name": "startCheckout",
+      "summary": "Creates an Appwrite JWT for the current session and asks the server checkout API for a Stripe Checkout URL."
+    },
+    {
+      "name": "pingAppwrite",
+      "summary": "Checks Appwrite reachability and records success or error state."
+    },
+    {
+      "name": "login",
+      "summary": "Creates an email/password session, then refreshes the current user."
+    },
+    {
+      "name": "loginWithGoogle",
+      "summary": "Starts Appwrite Google OAuth with dashboard success and signin failure redirects."
+    },
+    {
+      "name": "register",
+      "summary": "Creates an Appwrite account and then logs in using email/password."
+    },
+    {
+      "name": "logout",
+      "summary": "Deletes the current session and clears local user state."
+    },
+    {
+      "name": "useAuth",
+      "summary": "Requires consumers to be rendered within AuthProvider."
+    }
+  ],
+  "invariants": [
+    "Authentication failures during refresh must leave user as null and clear billing status.",
+    "Billing status must come from /api/billing/status using an Appwrite JWT, not from trusted client-only state.",
+    "Stripe checkout must start through /api/billing/checkout using an Appwrite JWT, not from client-side Stripe secrets or client-provided price IDs.",
+    "Logout must clear the local user after deleting the current session.",
+    "OAuth redirects must remain same-origin paths unless policy is updated.",
+    "useAuth must fail loudly when used outside AuthProvider."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/context/AuthContext.js",
+      "symbols": [
+        "AuthProvider",
+        "useAuth"
+      ]
+    }
+  ]
+}

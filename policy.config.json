@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "workspace": "diffforge",
+  "scope": "multi_project",
+  "canonical_source": "json",
+  "policy_root": "policy-diffforge",
+  "workspace_graph": "policy-diffforge/graph.json",
+  "projects_root": "policy-diffforge/projects",
+  "contracts_root": "policy-diffforge/contracts",
+  "proposals_root": "policy-diffforge/proposals",
+  "docs_root": "policy-diffforge/docs",
+  "snapshots_root": "policy-diffforge/snapshots",
+  "sql_root": "policy-diffforge/sql",
+  "sql_graph_path": "policy-diffforge/sql/graph.json",
+  "sql_nodes_root": "policy-diffforge/sql/nodes",
+  "sql_migrations_root": "policy-diffforge/sql/migrations",
+  "sql_docs_root": "policy-diffforge/sql/docs",
+  "sql_proposals_root": "policy-diffforge/sql/proposals",
+  "sql_snapshots_root": "policy-diffforge/sql/snapshots",
+  "validator": {
+    "command": "node policy-diffforge/validators/validate-policy.js"
+  },
+  "projects": [
+    {
+      "id": "next-diffforge",
+      "path": "next-diffforge",
+      "graph": "policy-diffforge/projects/next-diffforge/graph.json",
+      "status": "active"
+    },
+    {
+      "id": "rust-diffforge",
+      "path": "rust-diffforge",
+      "graph": "policy-diffforge/projects/rust-diffforge/graph.json",
+      "status": "empty"
+    }
+  ]
+}

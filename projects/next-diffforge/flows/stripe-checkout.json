@@ -1,0 +1,67 @@
+{
+  "id": "flow.next.stripe_checkout",
+  "kind": "flow",
+  "status": "pending",
+  "summary": "Authenticated users can start Stripe Checkout for the Pro subscription plan.",
+  "step_order": [
+    "mint_appwrite_jwt",
+    "verify_api_identity",
+    "upsert_local_user",
+    "create_checkout_session",
+    "redirect_to_stripe",
+    "sync_subscription_from_webhook"
+  ],
+  "steps": {
+    "mint_appwrite_jwt": "AuthContext creates an Appwrite JWT for the current session before requesting checkout.",
+    "verify_api_identity": "/api/billing/checkout verifies the JWT with Appwrite before creating a Stripe session.",
+    "upsert_local_user": "The API creates or updates public.users from verified Appwrite account data before starting checkout.",
+    "create_checkout_session": "The API creates a Stripe subscription Checkout Session using STRIPE_SECRET_KEY, STRIPE_PRO_PRICE_ID, APP_URL, user metadata, and Stripe-hosted promotion code entry.",
+    "redirect_to_stripe": "The client navigates to the Stripe-hosted checkout URL returned by the server.",
+    "sync_subscription_from_webhook": "Stripe webhook events update local customer and subscription tables after checkout completes."
+  },
+  "conditions": [
+    "Unauthenticated or invalid JWT requests must return 401.",
+    "Unexpected checkout request bodies must return 400.",
+    "Checkout must only use the server-side configured Stripe Price ID.",
+    "Stripe Checkout may accept Stripe-managed promotion codes through the hosted checkout page.",
+    "Client-provided price IDs, plan statuses, customer IDs, and redirect domains must not be trusted.",
+    "Checkout redirect URLs must be validated as Stripe-hosted HTTPS URLs before use.",
+    "Checkout metadata must include the verified Appwrite user id and local SQL user id for webhook reconciliation."
+  ],
+  "connected_rules": [
+    "policy-diffforge/projects/next-diffforge/rules/auth-session-safety.json",
+    "policy-diffforge/projects/next-diffforge/rules/stripe-webhook-safety.json"
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/context/AuthContext.js",
+      "symbols": [
+        "startCheckout"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/api/billing/checkout.js",
+      "symbols": [
+        "handler"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/pricing.js",
+      "symbols": [
+        "Pricing"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/billing/checkout.js",
+      "symbols": [
+        "BillingCheckout"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/dashboard.js",
+      "symbols": [
+        "Dashboard"
+      ]
+    }
+  ]
+}

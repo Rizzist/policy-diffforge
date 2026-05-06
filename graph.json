@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "workspace": "diffforge",
+  "scope": "multi_project",
+  "summary": "Diffforge currently contains an active Next.js Appwrite-backed frontend and an empty Rust project placeholder.",
+  "projects": [
+    {
+      "id": "next-diffforge",
+      "path": "next-diffforge",
+      "graph": "policy-diffforge/projects/next-diffforge/graph.json",
+      "summary": "Next.js Pages Router app with marketing, pricing, Appwrite authentication, and a protected dashboard shell."
+    },
+    {
+      "id": "rust-diffforge",
+      "path": "rust-diffforge",
+      "graph": "policy-diffforge/projects/rust-diffforge/graph.json",
+      "summary": "Reserved project directory with no source files detected at policy creation time."
+    }
+  ],
+  "contracts": [],
+  "rules": [
+    "policy-diffforge/rules/workspace-policy-workflow.json"
+  ],
+  "sql": {
+    "graph": "policy-diffforge/sql/graph.json",
+    "summary": "Top-level SQL policy graph for shared CockroachDB database contracts and migration policy."
+  },
+  "docs": [
+    "policy-diffforge/docs/README.md",
+    "policy-diffforge/docs/next-diffforge.md",
+    "policy-diffforge/docs/rust-diffforge.md"
+  ]
+}

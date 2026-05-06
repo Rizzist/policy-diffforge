@@ -1,0 +1,42 @@
+{
+  "id": "flow.next.placeholder_product_marketing",
+  "kind": "flow",
+  "status": "accepted",
+  "summary": "Marketing and pricing surfaces are visual/copy placeholders for planned Diffforge capabilities.",
+  "step_order": [
+    "show_home_positioning",
+    "show_workspace_preview",
+    "show_pricing_plans",
+    "route_to_auth"
+  ],
+  "steps": {
+    "show_home_positioning": "Home renders public product positioning and capability copy.",
+    "show_workspace_preview": "Home renders a static workspace preview with nonfunctional lane state.",
+    "show_pricing_plans": "Pricing renders static Free and Pro plan copy.",
+    "route_to_auth": "Calls to action link users to /signin or /signup."
+  },
+  "conditions": [
+    "No billing, agent execution, diff review, or project memory behavior is implemented by these pages.",
+    "Changes from placeholder to implemented behavior require policy updates for the new product flow."
+  ],
+  "connected_rules": [
+    "policy-diffforge/projects/next-diffforge/rules/placeholder-copy-boundary.json"
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/index.js",
+      "symbols": [
+        "Home",
+        "lanes",
+        "capabilities"
+      ]
+    },
+    {
+      "path": "next-diffforge/src/pages/pricing.js",
+      "symbols": [
+        "Pricing",
+        "plans"
+      ]
+    }
+  ]
+}

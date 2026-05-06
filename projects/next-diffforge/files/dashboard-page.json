@@ -1,0 +1,36 @@
+{
+  "id": "file.next.dashboard_page",
+  "kind": "file",
+  "status": "accepted",
+  "path": "next-diffforge/src/pages/dashboard.js",
+  "summary": "Protected dashboard shell that requires an authenticated Appwrite user and displays server-checked general account and billing status.",
+  "responsibilities": [
+    "Redirect unauthenticated visitors to /signin once loading completes.",
+    "Show loading copy while auth state is being initialized.",
+    "Allow the current user to sign out and return to /signin.",
+    "Request local SQL user profile and free or paid billing state from the billing status API.",
+    "Display the verified plan and local user details in a General section.",
+    "Let free authenticated users start Pro checkout from the dashboard.",
+    "Avoid repeated automatic billing status requests after a failure; users may retry manually.",
+    "Temporarily show bounded billing status endpoint error details for production debugging."
+  ],
+  "invariants": [
+    "Dashboard content must remain gated by AuthContext user state.",
+    "Unauthenticated users must be redirected to /signin after loading is false.",
+    "Sign out must call AuthContext logout before navigating to /signin.",
+    "Plan display must show free by default unless the verified server billing API returns paid.",
+    "Local SQL user details must come from the verified billing status API response, not client-provided state.",
+    "Checkout controls must call AuthContext startCheckout and redirect only to the server-returned Stripe Checkout URL.",
+    "A failed billing status request must not create an automatic retry loop.",
+    "Temporary endpoint error details must be removed after production billing status debugging is complete."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/pages/dashboard.js",
+      "symbols": [
+        "Dashboard",
+        "handleLogout"
+      ]
+    }
+  ]
+}

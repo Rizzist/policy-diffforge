@@ -1,0 +1,191 @@
+{
+  "schema_version": 2,
+  "id": "table.public.stripe_customers",
+  "kind": "table",
+  "workspace_id": "diffforge",
+  "project_id": "next-diffforge",
+  "scope": "project",
+  "database": {
+    "id": "db.main",
+    "name": "main",
+    "engine": "cockroachdb",
+    "schema": "public",
+    "table": "stripe_customers"
+  },
+  "name": "stripe_customers",
+  "summary": "Stores latest Stripe customer data linked to local users.",
+  "display": {
+    "label": "stripe_customers",
+    "group": "Database",
+    "icon": "table",
+    "default_view": "columns",
+    "risk_level": "high"
+  },
+  "compact": {
+    "one_liner": "Caches Stripe customers for webhook-driven billing sync.",
+    "critical_rules": [
+      "Only verified Stripe webhooks may write Stripe customer data."
+    ],
+    "main_columns": [
+      "stripe_customer_id",
+      "user_id",
+      "email",
+      "deleted"
+    ]
+  },
+  "ownership": {
+    "owner": "next-diffforge",
+    "domain": "billing",
+    "tenant_scoped": false,
+    "tenant_key": "",
+    "user_scoped": true,
+    "user_key": "user_id"
+  },
+  "data_classification": {
+    "contains_pii": true,
+    "contains_sensitive_auth_data": false,
+    "contains_payment_data": false,
+    "contains_secrets": false,
+    "retention_policy": "Retain latest Stripe customer data while billing linkage exists.",
+    "deletion_policy": "Mark deleted from Stripe customer.deleted events; future account deletion should remove or anonymize."
+  },
+  "columns": {
+    "stripe_customer_id": {
+      "id": "column.public.stripe_customers.stripe_customer_id",
+      "name": "stripe_customer_id",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": true,
+      "unique": true,
+      "default": "",
+      "summary": "Stripe customer id.",
+      "data_classification": "external_identifier",
+      "rules": []
+    },
+    "user_id": {
+      "id": "column.public.stripe_customers.user_id",
+      "name": "user_id",
+      "sql_type": "UUID",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Linked local user id when the customer can be matched.",
+      "data_classification": "identifier",
+      "rules": []
+    },
+    "email": {
+      "id": "column.public.stripe_customers.email",
+      "name": "email",
+      "sql_type": "STRING",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Latest Stripe customer email.",
+      "data_classification": "pii",
+      "rules": []
+    },
+    "name": {
+      "id": "column.public.stripe_customers.name",
+      "name": "name",
+      "sql_type": "STRING",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Latest Stripe customer name.",
+      "data_classification": "pii",
+      "rules": []
+    },
+    "deleted": {
+      "id": "column.public.stripe_customers.deleted",
+      "name": "deleted",
+      "sql_type": "BOOL",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "false",
+      "summary": "Whether Stripe reported the customer as deleted.",
+      "data_classification": "billing_status",
+      "rules": []
+    },
+    "raw_json": {
+      "id": "column.public.stripe_customers.raw_json",
+      "name": "raw_json",
+      "sql_type": "JSONB",
+      "nullable": true,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Latest Stripe customer object for audit and reconciliation.",
+      "data_classification": "stripe_customer_data",
+      "rules": [
+        "Do not store webhook secrets or raw event bodies."
+      ]
+    }
+  },
+  "indexes": [
+    {
+      "id": "index.public.stripe_customers.user_id",
+      "name": "stripe_customers_user_id_idx",
+      "columns": [
+        "user_id"
+      ],
+      "unique": false,
+      "summary": "Finds Stripe customers linked to a local user."
+    }
+  ],
+  "constraints": [],
+  "foreign_keys": [
+    {
+      "id": "fk.public.stripe_customers.user_id.users.id",
+      "name": "stripe_customers_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "references": {
+        "table": "users",
+        "columns": [
+          "id"
+        ]
+      },
+      "on_delete": "SET NULL",
+      "summary": "Links Stripe customers to local users without deleting Stripe audit cache when users are removed."
+    }
+  ],
+  "rls_policies": [],
+  "read_paths": [],
+  "write_paths": [
+    {
+      "node_id": "route.next.stripe_webhook",
+      "summary": "Upserts latest Stripe customer state from verified webhooks.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/stripe/webhook.js"
+        }
+      ]
+    }
+  ],
+  "migrations": [
+    "migration.20260505.stripe_billing"
+  ],
+  "rules": [
+    "rule.next.stripe_webhook_safety"
+  ],
+  "tests": [],
+  "edges": [],
+  "code_refs": [
+    {
+      "project_id": "next-diffforge",
+      "path": "next-diffforge/src/lib/server/stripe-sync.js"
+    }
+  ],
+  "review": {
+    "last_schema_hash": "",
+    "last_seen_migration": "policy-diffforge/sql/migrations/20260505_stripe_billing.sql",
+    "last_seen_commit": "",
+    "last_updated_by": "ai",
+    "confidence": 0.8
+  }
+}

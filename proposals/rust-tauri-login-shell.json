@@ -1,0 +1,121 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.tauri_login_shell",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Introduce a Tauri desktop shell for rust-diffforge with a placeholder login screen and a backend health ping to the hosted Next.js API.",
+  "scope": "cross_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "project.rust-diffforge",
+      "summary": "The previously empty Rust project becomes a packaged Tauri desktop app with Rust host code and a vanilla JavaScript WebView frontend."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "project.rust-diffforge.dev_workflow",
+      "summary": "Development runs through the native Tauri window while a loopback-only Vite server provides quiet hot reloading inside the WebView."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "project.rust-diffforge.package_workflow",
+      "summary": "Production builds create a downloadable Windows NSIS installer instead of only building a browser website preview."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "fn.rust.backend_ping",
+      "summary": "Add a Tauri command that performs a bounded GET request to https://diffforge.ai/api/hello and returns a compact connection status to the WebView."
+    },
+    {
+      "kind": "consumer_behavior_changed",
+      "target_id": "route.next.hello",
+      "summary": "rust-diffforge becomes a consumer of the existing public Next.js /api/hello endpoint through the hosted diffforge.ai API URL."
+    },
+    {
+      "kind": "rule_added",
+      "target_id": "rule.rust.placeholder_auth_boundary",
+      "summary": "The desktop login UI is intentionally non-authenticating until a reviewed backend auth contract exists, so typed credentials are not sent to an invented route."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge/sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "add",
+      "path": "rust-diffforge/package.json",
+      "summary": "Add npm scripts and JavaScript frontend dependencies for native Tauri dev, quiet WebView hot reload, and installer packaging."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/Cargo.toml",
+      "summary": "Add Rust package manifest for the Tauri host."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add the Tauri runtime and backend_ping command."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/tauri.conf.json",
+      "summary": "Configure Tauri dev to use Vite HMR and production builds to emit a Windows NSIS installer."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/tauri.dev.conf.json",
+      "summary": "Add a development override that lets Tauri attach to an already-running Vite server."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/main.js",
+      "summary": "Add the placeholder login UI behavior and command invocation."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/styles.css",
+      "summary": "Add responsive desktop login styling."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The Rust app only consumes an existing public API route and does not change the Next.js producer contract."
+  },
+  "cross_project_impact": {
+    "producer": "next-diffforge",
+    "consumer": "rust-diffforge",
+    "contract": "GET https://diffforge.ai/api/hello",
+    "breaking_change": false,
+    "compatibility_notes": "The desktop app treats the endpoint as a connectivity check only. Auth remains unimplemented until a dedicated backend route is reviewed."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm install",
+      "summary": "Install desktop frontend and Tauri CLI dependencies."
+    },
+    {
+      "command": "npm run build:web",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "npm run build",
+      "summary": "Validate native Tauri packaging."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "rust-diffforge/src-tauri",
+      "summary": "Validate Rust Tauri host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06"
+}

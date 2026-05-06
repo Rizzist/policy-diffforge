@@ -1,0 +1,23 @@
+{
+  "id": "tests.next.checks",
+  "kind": "tests",
+  "status": "accepted",
+  "summary": "Existing project checks available for the Next.js app.",
+  "checks": [
+    {
+      "name": "lint",
+      "command": "npm run lint",
+      "coverage": "Static JavaScript and Next.js linting."
+    },
+    {
+      "name": "build",
+      "command": "npm run build",
+      "coverage": "Next.js production build."
+    }
+  ],
+  "gaps": [
+    "No automated tests were detected for Appwrite auth flows.",
+    "No route-level tests were detected for dashboard redirect behavior.",
+    "No policy-aware test runner integration exists yet."
+  ]
+}

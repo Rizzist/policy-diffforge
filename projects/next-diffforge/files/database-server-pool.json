@@ -1,0 +1,27 @@
+{
+  "id": "file.next.database_server_pool",
+  "kind": "file",
+  "status": "pending",
+  "path": "next-diffforge/src/lib/server/db.js",
+  "summary": "Creates and exports a DATABASE_URL-backed pg Pool for server-side CockroachDB access.",
+  "responsibilities": [
+    "Read DATABASE_URL only from the server process environment.",
+    "Create one shared pg Pool instance per server runtime.",
+    "Export helpers for server-side callers to get the pool, run parameterized queries, and close the pool."
+  ],
+  "invariants": [
+    "This module must not be imported by browser/client components or client-side utilities.",
+    "Database reads and writes that expose sensitive data must perform authorization in the server route that calls this module.",
+    "DATABASE_URL must not be exposed through NEXT_PUBLIC variables or client bundles."
+  ],
+  "code_refs": [
+    {
+      "path": "next-diffforge/src/lib/server/db.js",
+      "symbols": [
+        "getDatabasePool",
+        "query",
+        "closeDatabasePool"
+      ]
+    }
+  ]
+}

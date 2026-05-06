@@ -1,0 +1,14 @@
+{
+  "id": "rule.workspace.policy_workflow",
+  "kind": "rule",
+  "status": "accepted",
+  "summary": "Behavior-changing work must check policy first and use proposals for policy changes.",
+  "invariants": [
+    "Policy JSON is canonical; generated Markdown is a mirror.",
+    "Accepted policy nodes are not mutated unless an explicit accepted-policy update is requested.",
+    "Behavior changes that diverge from accepted policy require a pending proposal before code edits.",
+    "Policy validation must run when policy files change."
+  ],
+  "code_refs": [],
+  "external_policy_refs": []
+}
