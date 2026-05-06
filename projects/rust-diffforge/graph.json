@@ -2,15 +2,36 @@
   "schema_version": "1.0.0",
   "project": "rust-diffforge",
   "path": "rust-diffforge",
-  "status": "empty",
-  "summary": "No source, manifest, or build files were detected at policy creation time.",
-  "files": [],
-  "flows": [],
+  "status": "active",
+  "framework": "Tauri 2 + Vite React",
+  "language": "JavaScript and Rust",
+  "package_manager": "npm",
+  "summary": "Native Diff Forge AI desktop app with a Tauri host, React WebView shell, web-to-desktop auth handoff, desktop session validation, billing gate, and placeholder workspace dashboard.",
+  "commands": {
+    "dev": "npm run dev",
+    "build_web": "npm run build:web",
+    "check_tauri": "cargo check"
+  },
+  "files": [
+    "policy-diffforge/projects/rust-diffforge/files/app-shell.json",
+    "policy-diffforge/projects/rust-diffforge/files/tauri-host.json"
+  ],
+  "flows": [
+    "policy-diffforge/projects/rust-diffforge/flows/desktop-auth.json"
+  ],
   "routes": [],
-  "rules": [],
-  "tests": [],
+  "rules": [
+    "policy-diffforge/projects/rust-diffforge/rules/auth-flow-safety.json"
+  ],
+  "tests": [
+    "policy-diffforge/projects/rust-diffforge/tests/checks.json"
+  ],
   "contracts": [],
-  "gaps": [
-    "Add project policy nodes when Rust source or manifests are introduced."
-  ]
+  "external_policy_refs": [
+    "proposal.desktop.web_auth_handoff",
+    "routes.next.desktop_auth",
+    "table.public.desktop_auth_codes",
+    "table.public.desktop_sessions"
+  ],
+  "sql_graph": "policy-diffforge/sql/graph.json"
 }

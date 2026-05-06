@@ -1,0 +1,38 @@
+{
+  "id": "rule.rust.auth_flow_safety",
+  "kind": "rule",
+  "status": "accepted",
+  "summary": "Desktop auth must be explicit, bounded, server-validated, and unable to strand users on startup.",
+  "invariants": [
+    "Startup auth has a hard 5 second user-visible deadline.",
+    "Auth initialization must remain correct under React StrictMode effect setup and cleanup replay.",
+    "Every desktop auth network operation has a bounded client-side and Tauri-side timeout.",
+    "Auth startup completion is idempotent; late work after the deadline must not overwrite the fallback login state.",
+    "Deep-link callbacks must never carry long-lived desktop session tokens.",
+    "Pending auth state must be generated locally and compared before code exchange.",
+    "Saved desktop session tokens are not trusted until the server validates them.",
+    "The app must clear local auth data when validation, exchange, refresh, or logout proves the local session is invalid.",
+    "Remote logout is best-effort after local session invalidation, so network failure cannot keep the device signed in.",
+    "Dashboard access is gated by server-returned user.planStatus and not by client-provided state.",
+    "The opener allowlist must stay limited to Diff Forge AI destinations used by desktop auth and pricing."
+  ],
+  "code_refs": [
+    {
+      "path": "rust-diffforge/src/App.jsx",
+      "symbols": [
+        "AUTH_STARTUP_TIMEOUT_MS",
+        "validateStoredSession",
+        "completeDesktopLogin",
+        "startWebLogin",
+        "logout"
+      ]
+    },
+    {
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "symbols": [
+        "http_client",
+        "validate_auth_value"
+      ]
+    }
+  ]
+}

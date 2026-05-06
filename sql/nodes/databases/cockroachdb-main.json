@@ -38,7 +38,8 @@
       "stripe_subscriptions",
       "stripe_webhook_events",
       "desktop_auth_codes",
-      "desktop_sessions"
+      "desktop_sessions",
+      "workspaces"
     ]
   },
   "ownership": {
@@ -68,7 +69,8 @@
         "stripe_subscriptions",
         "stripe_webhook_events",
         "desktop_auth_codes",
-        "desktop_sessions"
+        "desktop_sessions",
+        "workspaces"
       ]
     }
   ],
@@ -78,13 +80,15 @@
     "table.public.stripe_subscriptions",
     "table.public.stripe_webhook_events",
     "table.public.desktop_auth_codes",
-    "table.public.desktop_sessions"
+    "table.public.desktop_sessions",
+    "table.public.workspaces"
   ],
   "read_paths": [],
   "write_paths": [],
   "migrations": [
     "migration.20260505.stripe_billing",
-    "migration.20260506.desktop_auth"
+    "migration.20260506.desktop_auth",
+    "migration.20260506.workspaces"
   ],
   "rules": [
     "rule.next.database_server_only",

@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.forge_console_local_agents",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add a Forge Console to rust-diffforge that installs, detects, and auto-updates npm-backed local Codex and Claude Code CLIs, recommends provider-native installers for missing agents, launches provider-owned login flows, and runs read-only prompts through selected local agents.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.forge_console",
+      "summary": "Authenticated desktop users can write prompts in a Forge Console UI, copy responses, and choose Codex or Claude Code as the local agent engine."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.local_agent_commands",
+      "summary": "The Tauri command layer allows only fixed Codex and Claude Code provider commands for install, status, login launch, and prompt execution."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_install",
+      "summary": "Users can open official native installer pages from the desktop UI, or use fixed npm global package install commands when npm is detected; already installed npm-backed agents auto-update with the same fixed package command."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_status_recheck",
+      "summary": "Agent status automatically rechecks after install, update, or login actions so Connect and Use become available as soon as the local CLI is detected."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.install_opener_allowlist",
+      "summary": "The desktop opener allowlist expands only to official Codex and Claude Code install destinations required by the local-agent setup flow."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_auth",
+      "summary": "DiffForge does not store provider secrets; users authenticate with the official local CLIs and the app detects local credential state."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_contract",
+      "summary": "DiffForge web login, desktop sessions, SQL tables, and backend APIs are unchanged by local agent support."
+    }
+  ],
+  "rules": [
+    "DiffForge must not ask users to paste OpenAI or Anthropic API keys for this local-agent flow.",
+    "Provider-native installer pages must be recommended over npm when both options are available.",
+    "The npm install action must appear only when npm is detected on PATH.",
+    "Provider npm install actions must run only fixed official package install commands for the selected provider.",
+    "Installed agents detected as global npm packages may auto-update with the fixed provider npm package command.",
+    "Auto-update failures must be recoverable status messages and must not block connecting to an already installed agent.",
+    "Provider install failures must be shown as recoverable UI state with retry and manual command fallback guidance.",
+    "Permission-denied install failures must not silently escalate privileges or rerun with elevated rights.",
+    "Users without npm must still have an external provider-native install path.",
+    "External installer links must be fixed allowlisted provider destinations, not user-supplied URLs.",
+    "Installed provider cards should show only Connect and Use actions, with install choices hidden unless the provider is missing.",
+    "Disabled Connect and Use controls must explain that the local provider CLI needs to be installed.",
+    "Provider authentication must be delegated to the official Codex and Claude Code CLIs.",
+    "The app may only spawn fixed allowlisted provider commands, not arbitrary user-supplied shell commands.",
+    "Forge Console prompt execution must default to a read-only/safe mode and must not apply file patches automatically.",
+    "Prompt text may be passed to local provider CLIs, so the UI must make the selected provider explicit before execution.",
+    "Provider status checks may detect local credentials but must not read, display, or persist secret values."
+  ],
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate the Forge Console React shell builds."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "rust-diffforge/src-tauri",
+      "summary": "Validate local agent command implementations."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06"
+}

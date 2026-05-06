@@ -175,6 +175,18 @@
       ]
     },
     {
+      "kind": "producer_behavior_changed",
+      "target": "file.next.dashboard_page",
+      "summary": "Only paid users may render the web dashboard; free or unverified billing states redirect to the pricing page.",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "policy-diffforge/projects/next-diffforge/files/dashboard-page.json",
+          "value": "dashboard policy gates content on verified paid billing status"
+        }
+      ]
+    },
+    {
       "kind": "route_contract_changed",
       "target": "route.next.billing_status",
       "summary": "Temporarily include bounded billing status endpoint error details in 500 responses and render them on the dashboard for production debugging.",
@@ -224,6 +236,7 @@
     "Billing status API requests must verify the caller's Appwrite JWT before reading or writing user billing state.",
     "Temporary billing status debug errors must remain bounded and must be removed after production diagnosis.",
     "Checkout API requests must verify the caller's Appwrite JWT and must not accept client-provided price IDs or redirect domains.",
+    "Dashboard content must only render after verified billing status returns paid; free and unverified states must see pricing instead.",
     "Stripe raw event payloads are not stored; only latest relevant Stripe object JSON and low-noise event processing metadata are retained."
   ],
   "cross_project_impact": {

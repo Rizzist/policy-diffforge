@@ -1,0 +1,23 @@
+{
+  "id": "tests.rust.checks",
+  "kind": "tests",
+  "status": "accepted",
+  "summary": "Validation commands for the rust-diffforge desktop shell and auth flow.",
+  "commands": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and Rust host code."
+    }
+  ]
+}

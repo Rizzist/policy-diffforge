@@ -1,0 +1,36 @@
+{
+  "id": "file.rust.tauri_host",
+  "kind": "file",
+  "status": "accepted",
+  "summary": "Rust Tauri host commands and desktop capabilities for backend auth requests, deep links, opener allowlists, and native window behavior.",
+  "responsibilities": [
+    "Validate desktop auth values before sending API requests.",
+    "Apply bounded HTTP client timeouts to desktop auth exchange, validation, revoke, and backend health requests.",
+    "Register the diffforge deep-link scheme on desktop platforms.",
+    "Restrict opener permissions to approved Diff Forge AI web destinations used by the desktop auth and billing gate."
+  ],
+  "code_refs": [
+    {
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "symbols": [
+        "exchange_desktop_auth_code",
+        "validate_desktop_session",
+        "logout_desktop_session",
+        "backend_ping"
+      ]
+    },
+    {
+      "path": "rust-diffforge/src-tauri/capabilities/default.json",
+      "symbols": [
+        "opener:allow-open-url",
+        "deep-link:default"
+      ]
+    }
+  ],
+  "connected_flows": [
+    "flow.rust.desktop_auth"
+  ],
+  "connected_rules": [
+    "rule.rust.auth_flow_safety"
+  ]
+}

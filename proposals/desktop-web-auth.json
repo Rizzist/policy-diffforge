@@ -15,7 +15,7 @@
     {
       "kind": "consumer_behavior_changed",
       "target_id": "rust-diffforge.desktop_auth",
-      "summary": "Tauri opens the hosted web login in the system browser, handles diffforge://auth/callback deep links, exchanges one-time codes, and validates saved sessions on app startup."
+      "summary": "Tauri validates saved sessions on app startup, opens the hosted web login only after the user presses the sign-in button, handles diffforge://auth/callback deep links, and exchanges one-time codes."
     },
     {
       "kind": "database_table_added",
@@ -41,6 +41,11 @@
       "kind": "route_contract_changed",
       "target_id": "routes.next.desktop_auth",
       "summary": "Add /api/desktop/auth-codes, /api/desktop/sessions/exchange, and /api/desktop/session contracts for create, exchange, validate, and revoke behavior."
+    },
+    {
+      "kind": "contract_shape_changed",
+      "target_id": "routes.next.desktop_auth.user_plan_status",
+      "summary": "Desktop session exchange and validation responses include user.planStatus derived from server billing state so rust-diffforge can gate dashboard access."
     }
   ],
   "affected_tables": [
@@ -67,6 +72,9 @@
     "One-time auth codes expire after five minutes and cannot be exchanged after consumed_at is set.",
     "Desktop sessions expire after thirty days, are revocable, and must be validated by the server before the desktop app treats a stored token as authenticated.",
     "The desktop app should clear local session state when validation fails or logout succeeds.",
+    "The desktop app should not initiate a new browser login on startup; only an explicit user action may create a pending auth state and open the hosted web login.",
+    "Desktop startup session validation should not block the user from pressing the web sign-in button.",
+    "Desktop session responses must derive user.planStatus from server-owned billing state and treat only active or trialing Stripe subscriptions as paid.",
     "The web sign-in returnTo parameter must be same-origin path-only to avoid open redirects."
   ],
   "cross_project_impact": {

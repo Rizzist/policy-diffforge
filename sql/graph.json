@@ -12,11 +12,13 @@
     "policy-diffforge/sql/nodes/tables/stripe-subscriptions.json",
     "policy-diffforge/sql/nodes/tables/stripe-webhook-events.json",
     "policy-diffforge/sql/nodes/tables/desktop-auth-codes.json",
-    "policy-diffforge/sql/nodes/tables/desktop-sessions.json"
+    "policy-diffforge/sql/nodes/tables/desktop-sessions.json",
+    "policy-diffforge/sql/nodes/tables/workspaces.json"
   ],
   "migrations": [
     "policy-diffforge/sql/nodes/migrations/20260505-stripe-billing.json",
-    "policy-diffforge/sql/nodes/migrations/20260506-desktop-auth.json"
+    "policy-diffforge/sql/nodes/migrations/20260506-desktop-auth.json",
+    "policy-diffforge/sql/nodes/migrations/20260506-workspaces.json"
   ],
   "edges": [
     {
@@ -62,6 +64,13 @@
       "label": "Owns desktop_sessions table"
     },
     {
+      "id": "edge.db.main.owns_workspaces",
+      "from": "db.main",
+      "to": "table.public.workspaces",
+      "type": "owns_table",
+      "label": "Owns workspaces table"
+    },
+    {
       "id": "edge.migration.20260505.stripe_billing.changes_users",
       "from": "migration.20260505.stripe_billing",
       "to": "table.public.users",
@@ -102,6 +111,13 @@
       "to": "table.public.desktop_sessions",
       "type": "migration_changes_table",
       "label": "Creates desktop_sessions table"
+    },
+    {
+      "id": "edge.migration.20260506.workspaces.changes_workspaces",
+      "from": "migration.20260506.workspaces",
+      "to": "table.public.workspaces",
+      "type": "migration_changes_table",
+      "label": "Creates workspaces table"
     }
   ]
 }

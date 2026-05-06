@@ -1,0 +1,93 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.desktop_auth_hardening",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Harden rust-diffforge desktop auth startup so users cannot remain stuck on the launch screen and every auth network path is bounded.",
+  "scope": "cross_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "condition_added",
+      "target_id": "flow.rust.desktop_auth.startup_watchdog",
+      "summary": "Desktop auth startup has a hard 5 second watchdog that falls back to signed-out web login."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.auth_initialization",
+      "summary": "Deep-link listener registration happens immediately and startup auth completion is idempotent without a StrictMode-breaking initializedRef guard."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.auth_flow_ids",
+      "summary": "Late results from timed-out startup, session validation, or code exchange are ignored after the auth flow id changes."
+    },
+    {
+      "kind": "condition_added",
+      "target_id": "rust-diffforge.auth_network_timeouts",
+      "summary": "Session restore, auth code exchange, plan refresh, and logout all use bounded client timeouts."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.desktop_auth_policy",
+      "summary": "Project policy now records the production desktop auth invariants for startup, deep links, server validation, billing gate, and logout."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.launch_loader",
+      "summary": "The launch loader uses a blue base track with a one-way orange segment that enters, crosses, and exits."
+    },
+    {
+      "kind": "condition_added",
+      "target_id": "rust-diffforge.launch_connectivity_gate",
+      "summary": "The desktop launch screen automatically checks the Diff Forge API hello endpoint and only exposes signed-out login after backend reachability succeeds."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.offline_launch_state",
+      "summary": "If the API hello check fails, the launch screen switches to a polished offline state, stops the moving loading indicator, and offers an explicit retry."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.backend_ping_status_copy",
+      "summary": "The desktop backend ping command returns stable generic online copy instead of echoing service-provided names into app UI."
+    }
+  ],
+  "rules": [
+    "Startup auth must transition to authenticated, pricing-gated, or signed-out login state within 5 seconds.",
+    "Auth startup must not wait on deep-link listener registration after saved-session validation starts.",
+    "React StrictMode effect cleanup/setup cycles must not permanently skip auth initialization.",
+    "All desktop auth network commands must have client-side and Tauri-side bounds.",
+    "Late async results must be ignored after the active auth flow id changes.",
+    "Timeout fallback clears stale local auth data and keeps the web sign-in button available.",
+    "Dashboard rendering remains gated by server-returned user.planStatus paid.",
+    "The signed-out login screen must not render until the automatic backend hello check has succeeded.",
+    "The automatic backend hello check must have a bounded client-side timeout.",
+    "Backend hello failure must keep users on a launch/offline state with a stopped loader and retry action instead of a stale sign-in screen."
+  ],
+  "cross_project_impact": {
+    "producer": "next-diffforge",
+    "consumer": "rust-diffforge",
+    "contract": "No shape change to the existing /api/hello or /api/desktop/* contracts. rust-diffforge becomes stricter about local startup deadlines, backend reachability gating, and late result handling.",
+    "breaking_change": false,
+    "compatibility_notes": "Existing deployed Next.js desktop auth endpoints remain compatible."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate project policy references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate React desktop shell build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "rust-diffforge/src-tauri",
+      "summary": "Validate Tauri host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06"
+}

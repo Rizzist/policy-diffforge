@@ -1,0 +1,101 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.desktop_dashboard_shell",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add the first authenticated rust-diffforge desktop dashboard shell with workspace navigation, placeholder terminal panes, right-side tabs, settings, and sign out.",
+  "scope": "cross_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.desktop_dashboard",
+      "summary": "Authenticated desktop users see a simple dashboard instead of the temporary logged-in text."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.authenticated_view",
+      "summary": "The authenticated React state renders workspaces, terminal placeholders, a right-side tab panel, settings, and sign-out controls."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.launch_screen",
+      "summary": "Desktop startup shows a branded logo loading screen while the app checks the backend and restores any saved session."
+    },
+    {
+      "kind": "step_added",
+      "target_id": "rust-diffforge.workspace_initialization",
+      "summary": "After a session becomes authenticated, the shell briefly shows an initializing workspace state before rendering the dashboard."
+    },
+    {
+      "kind": "condition_added",
+      "target_id": "rust-diffforge.auth_startup_fallback",
+      "summary": "Startup auth checks must stop blocking the launch screen within 5 seconds and show login when no restorable desktop session is available."
+    },
+    {
+      "kind": "condition_changed",
+      "target_id": "rust-diffforge.saved_session_validation",
+      "summary": "Saved desktop session validation is bounded to a 5 second startup timeout before clearing the local session and returning to web login."
+    },
+    {
+      "kind": "consumer_behavior_changed",
+      "target_id": "rust-diffforge.desktop_dashboard_billing_gate",
+      "summary": "Authenticated desktop users must see the pricing-only screen unless the server-returned desktop session user has planStatus paid."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "next-diffforge.desktop_session_billing_status",
+      "summary": "Desktop session exchange and validation responses refresh the user's billing status from Stripe subscription cache before returning planStatus."
+    },
+    {
+      "kind": "route_contract_changed",
+      "target_id": "routes.next.desktop_auth",
+      "summary": "Desktop session responses continue returning user.planStatus, with paid derived from active or trialing Stripe subscriptions and all other states treated as free."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.auth_contract",
+      "summary": "No auth token, deep-link, API, or database contract changes are introduced by this dashboard shell."
+    }
+  ],
+  "rules": [
+    "The dashboard must only render when authState is authenticated.",
+    "The dashboard must only render when the desktop session user has planStatus paid.",
+    "Free, missing, unknown, stale, or failed billing states must show the pricing-only desktop screen instead of the dashboard.",
+    "Desktop paid/free status must come from the server-returned desktop session user, not from client-provided state.",
+    "The pricing-only desktop screen may open the hosted pricing page in the browser and refresh the desktop session status.",
+    "The launch screen must not read or write auth data beyond the existing session restoration flow.",
+    "The initializing workspace state must be visual only until explicit workspace loading APIs or local commands are added.",
+    "The launch screen must not wait indefinitely on deep-link listener registration or session validation.",
+    "Saved desktop session validation must either restore a session or fall back to the signed-out web login state within 5 seconds.",
+    "If no saved session exists, or a saved session cannot be restored, the signed-out login screen must be shown.",
+    "Settings and sign out must remain available from the authenticated shell.",
+    "Terminal, workspace, file, web, and policy panels are placeholders only and must not imply working project data until backed by explicit APIs or local commands.",
+    "The signed-out web-login flow must remain available and unchanged for unauthenticated users."
+  ],
+  "cross_project_impact": {
+    "producer": "next-diffforge",
+    "consumer": "rust-diffforge",
+    "contract": "Desktop session exchange and validation return user.planStatus derived from server billing state. rust-diffforge gates dashboard access on planStatus paid.",
+    "breaking_change": false,
+    "compatibility_notes": "Free desktop sessions remain valid but render pricing only. Paid desktop sessions continue into the dashboard after workspace initialization."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy JSON references."
+    },
+    {
+      "command": "npm run build",
+      "working_directory": "next-diffforge",
+      "summary": "Validate Next.js desktop session and billing helper changes."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate the desktop React shell builds."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06"
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "id": "migration.20260506.workspaces",
+  "kind": "migration",
+  "workspace_id": "diffforge",
+  "project_id": "next-diffforge",
+  "scope": "project",
+  "name": "workspaces",
+  "summary": "Creates user-owned desktop workspaces with bounded terminal count and 4 by 2 board layout metadata.",
+  "migration": {
+    "file": "policy-diffforge/sql/migrations/20260506_workspaces.sql",
+    "engine": "cockroachdb",
+    "direction": "up",
+    "destructive": false,
+    "backfill_required": false,
+    "rollback_supported": false
+  },
+  "changes": [
+    {
+      "kind": "database_table_added",
+      "target_id": "table.public.workspaces",
+      "summary": "Adds workspaces table with terminal count and terminal_layout metadata."
+    },
+    {
+      "kind": "database_column_added",
+      "target_id": "column.public.workspaces.terminal_layout",
+      "summary": "Adds JSONB terminal layout metadata for desktop workspace panes."
+    }
+  ],
+  "affected_tables": [
+    "table.public.users",
+    "table.public.workspaces"
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": true,
+    "safe_deploy_order": [
+      "Apply migration before deploying /api/desktop/workspaces.",
+      "Deploy the protected Next.js route before shipping workspace sync in rust-diffforge."
+    ],
+    "backward_compatible": true
+  },
+  "rules": [
+    "rule.next.auth_session_safety",
+    "rule.next.database_server_only"
+  ],
+  "tests": [],
+  "code_refs": [
+    {
+      "project_id": "next-diffforge",
+      "path": "next-diffforge/src/pages/api/desktop/workspaces.js"
+    }
+  ],
+  "review": {
+    "last_schema_hash": "",
+    "last_seen_commit": "",
+    "last_updated_by": "ai",
+    "confidence": 0.75
+  }
+}

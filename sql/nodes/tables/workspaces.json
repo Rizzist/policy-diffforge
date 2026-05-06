@@ -1,0 +1,250 @@
+{
+  "schema_version": 2,
+  "id": "table.public.workspaces",
+  "kind": "table",
+  "workspace_id": "diffforge",
+  "project_id": "next-diffforge",
+  "scope": "project",
+  "database": {
+    "id": "db.main",
+    "name": "main",
+    "engine": "cockroachdb",
+    "schema": "public",
+    "table": "workspaces"
+  },
+  "name": "workspaces",
+  "summary": "Stores desktop workspaces owned by a Diffforge user, including the terminal board layout metadata.",
+  "display": {
+    "label": "workspaces",
+    "group": "Database",
+    "icon": "table",
+    "default_view": "columns",
+    "risk_level": "medium"
+  },
+  "compact": {
+    "one_liner": "User-owned desktop workspace records.",
+    "critical_rules": [
+      "Reads and writes must be scoped to authenticated desktop session user_id."
+    ],
+    "main_columns": [
+      "user_id",
+      "name",
+      "terminal_count",
+      "terminal_layout"
+    ]
+  },
+  "ownership": {
+    "owner": "next-diffforge",
+    "domain": "workspace",
+    "tenant_scoped": false,
+    "tenant_key": "",
+    "user_scoped": true,
+    "user_key": "user_id"
+  },
+  "data_classification": {
+    "contains_pii": false,
+    "contains_sensitive_auth_data": false,
+    "contains_payment_data": false,
+    "contains_secrets": false,
+    "retention_policy": "Retain while the owning user account exists.",
+    "deletion_policy": "Cascade delete when owning user is deleted."
+  },
+  "columns": {
+    "id": {
+      "id": "column.public.workspaces.id",
+      "name": "id",
+      "sql_type": "UUID",
+      "nullable": false,
+      "primary_key": true,
+      "unique": true,
+      "default": "gen_random_uuid()",
+      "summary": "Workspace identifier.",
+      "data_classification": "identifier",
+      "rules": []
+    },
+    "user_id": {
+      "id": "column.public.workspaces.user_id",
+      "name": "user_id",
+      "sql_type": "UUID",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "Owning local user id.",
+      "data_classification": "identifier",
+      "rules": [
+        "Must match the validated desktop session user id."
+      ]
+    },
+    "name": {
+      "id": "column.public.workspaces.name",
+      "name": "name",
+      "sql_type": "STRING",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "",
+      "summary": "User-visible workspace name.",
+      "data_classification": "user_content",
+      "rules": [
+        "Must be trimmed and length-bounded before insert."
+      ]
+    },
+    "terminal_count": {
+      "id": "column.public.workspaces.terminal_count",
+      "name": "terminal_count",
+      "sql_type": "INT8",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "1",
+      "summary": "Number of terminal panes in the workspace board.",
+      "data_classification": "preference",
+      "rules": [
+        "Must be between 1 and 8."
+      ]
+    },
+    "terminal_layout": {
+      "id": "column.public.workspaces.terminal_layout",
+      "name": "terminal_layout",
+      "sql_type": "JSONB",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "'[]'::JSONB",
+      "summary": "Terminal layout metadata for the 4-column by 2-row desktop workspace board.",
+      "data_classification": "preference",
+      "rules": [
+        "Must be a JSON array with 1 to 8 terminal pane records.",
+        "Each pane must fit within the 4 by 2 board and must not overlap another pane.",
+        "Supported pane sizes are 1x1, 2x1, 1x2, and 4x2."
+      ]
+    },
+    "created_at": {
+      "id": "column.public.workspaces.created_at",
+      "name": "created_at",
+      "sql_type": "TIMESTAMPTZ",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "now()",
+      "summary": "Workspace creation timestamp.",
+      "data_classification": "metadata",
+      "rules": []
+    },
+    "updated_at": {
+      "id": "column.public.workspaces.updated_at",
+      "name": "updated_at",
+      "sql_type": "TIMESTAMPTZ",
+      "nullable": false,
+      "primary_key": false,
+      "unique": false,
+      "default": "now()",
+      "summary": "Workspace update timestamp.",
+      "data_classification": "metadata",
+      "rules": []
+    }
+  },
+  "indexes": [
+    {
+      "id": "index.public.workspaces.user_created",
+      "name": "workspaces_user_created_idx",
+      "columns": [
+        "user_id",
+        "created_at"
+      ],
+      "unique": false,
+      "summary": "Lists a user's workspaces newest-first."
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint.public.workspaces.terminal_count_range",
+      "name": "workspaces_terminal_count_range",
+      "kind": "check",
+      "columns": [
+        "terminal_count"
+      ],
+      "summary": "Keeps workspace terminal count between 1 and 8."
+    },
+    {
+      "id": "constraint.public.workspaces.terminal_layout_array",
+      "name": "workspaces_terminal_layout_array",
+      "kind": "check",
+      "columns": [
+        "terminal_layout"
+      ],
+      "summary": "Requires terminal layout metadata to be stored as a JSON array."
+    },
+    {
+      "id": "constraint.public.workspaces.user_name_unique",
+      "name": "workspaces_user_name_unique",
+      "kind": "unique",
+      "columns": [
+        "user_id",
+        "name"
+      ],
+      "summary": "Prevents duplicate workspace names for one user."
+    }
+  ],
+  "foreign_keys": [
+    {
+      "id": "fk.public.workspaces.user_id.users.id",
+      "name": "workspaces_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "references_table": "table.public.users",
+      "references_columns": [
+        "id"
+      ],
+      "on_delete": "cascade",
+      "summary": "Deletes workspaces with their owning user."
+    }
+  ],
+  "rls_policies": [],
+  "read_paths": [
+    {
+      "node_id": "route.next.desktop_workspaces",
+      "summary": "Lists workspaces for the authenticated desktop session user.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/desktop/workspaces.js"
+        }
+      ]
+    }
+  ],
+  "write_paths": [
+    {
+      "node_id": "route.next.desktop_workspaces",
+      "summary": "Creates workspaces for the authenticated desktop session user.",
+      "code_refs": [
+        {
+          "path": "next-diffforge/src/pages/api/desktop/workspaces.js"
+        }
+      ]
+    }
+  ],
+  "migrations": [
+    "migration.20260506.workspaces"
+  ],
+  "rules": [
+    "rule.next.auth_session_safety",
+    "rule.next.database_server_only"
+  ],
+  "tests": [],
+  "edges": [],
+  "code_refs": [
+    {
+      "project_id": "next-diffforge",
+      "path": "next-diffforge/src/lib/server/desktop-workspaces.js"
+    }
+  ],
+  "review": {
+    "last_schema_hash": "",
+    "last_seen_migration": "policy-diffforge/sql/migrations/20260506_workspaces.sql",
+    "last_seen_commit": "",
+    "last_updated_by": "ai",
+    "confidence": 0.75
+  }
+}

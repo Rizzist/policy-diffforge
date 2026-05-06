@@ -1,0 +1,31 @@
+{
+  "id": "file.rust.app_shell",
+  "kind": "file",
+  "status": "accepted",
+  "summary": "React WebView shell for the native Diff Forge AI desktop app.",
+  "responsibilities": [
+    "Render the launch, login, pricing gate, dashboard, and settings screens.",
+    "Own local desktop auth state transitions and visible auth error messages.",
+    "Store only the current desktop session token, pending auth state, and display user snapshot required by the existing desktop auth contract.",
+    "Never render authenticated dashboard content until a server-returned desktop session user is authenticated and marked paid."
+  ],
+  "code_refs": [
+    {
+      "path": "rust-diffforge/src/App.jsx",
+      "symbols": [
+        "App",
+        "validateStoredSession",
+        "completeDesktopLogin",
+        "startWebLogin",
+        "refreshSubscriptionStatus",
+        "logout"
+      ]
+    }
+  ],
+  "connected_flows": [
+    "flow.rust.desktop_auth"
+  ],
+  "connected_rules": [
+    "rule.rust.auth_flow_safety"
+  ]
+}

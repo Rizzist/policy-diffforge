@@ -1,0 +1,81 @@
+{
+  "id": "flow.rust.desktop_auth",
+  "kind": "flow",
+  "status": "accepted",
+  "summary": "Native desktop auth uses explicit browser handoff, validated deep-link callbacks, bounded server session checks, and a paid-plan dashboard gate.",
+  "step_order": [
+    "render_launch_screen",
+    "register_deep_link_listener",
+    "start_startup_watchdog",
+    "inspect_startup_deep_links",
+    "restore_saved_session",
+    "fallback_to_login",
+    "start_web_login",
+    "handle_deep_link_callback",
+    "exchange_one_time_code",
+    "persist_valid_session",
+    "gate_paid_dashboard",
+    "refresh_plan_status",
+    "logout"
+  ],
+  "steps": {
+    "render_launch_screen": "The app initially renders a branded launch screen while auth startup begins.",
+    "register_deep_link_listener": "The deep-link listener is registered immediately and must not wait for saved-session validation to finish.",
+    "start_startup_watchdog": "A hard 5 second startup watchdog invalidates stale startup work and shows the web login screen if auth initialization has not completed.",
+    "inspect_startup_deep_links": "Startup deep-link inspection is bounded and handles only diffforge://auth/callback URLs with safe code and state values.",
+    "restore_saved_session": "A saved desktop session token is validated through the server before local state becomes authenticated.",
+    "fallback_to_login": "Missing, invalid, expired, stale, failed, or slow session checks clear local auth data and show the signed-out browser login action.",
+    "start_web_login": "Only an explicit user action creates a new random pending state and opens the hosted web login URL.",
+    "handle_deep_link_callback": "A callback must match the pending local state before any auth code exchange is attempted.",
+    "exchange_one_time_code": "The one-time desktop auth code exchange is bounded and saves only server-returned session data.",
+    "persist_valid_session": "The app stores the desktop session token and user snapshot only after a successful server response.",
+    "gate_paid_dashboard": "Authenticated desktop users see the dashboard only when server-returned user.planStatus is paid.",
+    "refresh_plan_status": "Plan refresh revalidates the stored desktop session and remains bounded so the pricing gate cannot hang.",
+    "logout": "Logout invalidates active local auth flow state, clears local session data, and attempts a bounded remote revoke."
+  },
+  "conditions": [
+    "The launch screen must never depend on any single unbounded Promise, plugin call, or Tauri command.",
+    "The startup launch screen must transition to either authenticated state or signed-out login within 5 seconds.",
+    "React StrictMode effect cleanup/setup cycles must not permanently skip auth initialization.",
+    "Late results from timed-out startup work must be ignored by comparing auth flow ids before mutating UI state.",
+    "Deep links must use the diffforge scheme, auth host, /callback path, and safe auth values before being considered.",
+    "Desktop auth codes are exchanged only when the returned state matches the locally pending state.",
+    "The browser login window is opened only after the user presses the sign-in button.",
+    "The dashboard must not render from cached user state without a successful server session validation or exchange.",
+    "Free, missing, unknown, stale, expired, or failed plan states must render the pricing/login surfaces, not the dashboard.",
+    "Remote logout failures must not keep a local session alive."
+  ],
+  "connected_rules": [
+    "policy-diffforge/projects/rust-diffforge/rules/auth-flow-safety.json",
+    "policy-diffforge/projects/next-diffforge/rules/auth-session-safety.json"
+  ],
+  "external_policy_refs": [
+    "proposal.desktop.web_auth_handoff",
+    "table.public.desktop_auth_codes",
+    "table.public.desktop_sessions"
+  ],
+  "code_refs": [
+    {
+      "path": "rust-diffforge/src/App.jsx",
+      "symbols": [
+        "App",
+        "validateStoredSession",
+        "completeDesktopLogin",
+        "startWebLogin",
+        "refreshSubscriptionStatus",
+        "logout"
+      ]
+    },
+    {
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "symbols": [
+        "exchange_desktop_auth_code",
+        "validate_desktop_session",
+        "logout_desktop_session"
+      ]
+    }
+  ],
+  "tests": [
+    "policy-diffforge/projects/rust-diffforge/tests/checks.json"
+  ]
+}

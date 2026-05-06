@@ -1,0 +1,50 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.custom_window_chrome",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Replace native desktop window decorations with a compact app-rendered title bar that preserves drag, minimize, maximize, and close controls.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.window_chrome",
+      "summary": "The Tauri window becomes frameless and the React WebView renders the visible title bar."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.window_permissions",
+      "summary": "The app grants only the window commands needed for custom chrome: drag, minimize, toggle maximize, and close."
+    },
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "rust-diffforge.app_shell",
+      "summary": "App.jsx owns the compact title bar, window control buttons, and content inset below the title bar."
+    }
+  ],
+  "rules": [
+    "Custom window chrome must keep close, minimize, maximize, and drag behavior available.",
+    "Window control buttons must use the Tauri window API rather than app-auth or backend APIs.",
+    "The custom title bar must appear for both signed-out and authenticated states.",
+    "This change must not alter desktop auth, session storage, or backend API contracts."
+  ],
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate the desktop React shell builds."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "rust-diffforge/src-tauri",
+      "summary": "Validate Tauri config and capability changes."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06"
+}

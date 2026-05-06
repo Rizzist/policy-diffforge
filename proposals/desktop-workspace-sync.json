@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "id": "proposal.desktop.workspace_sync",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add authenticated desktop workspace sync backed by CockroachDB and replace placeholder workspaces with user-created workspace records plus terminal board layout metadata.",
+  "scope": "cross_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "database_table_added",
+      "target_id": "table.public.workspaces",
+      "summary": "Adds user-owned workspaces with first-run terminal count and 4 by 2 terminal layout metadata."
+    },
+    {
+      "kind": "database_migration_added",
+      "target_id": "migration.20260506.workspaces",
+      "summary": "Creates the workspaces table with user ownership, uniqueness, and terminal count constraints."
+    },
+    {
+      "kind": "route_contract_changed",
+      "target_id": "route.next.desktop_workspaces",
+      "summary": "Adds /api/desktop/workspaces for authenticated desktop session GET, POST, and PATCH workspace sync."
+    },
+    {
+      "kind": "consumer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_bootstrap",
+      "summary": "The desktop app fetches workspaces from the protected API and prompts for the first workspace when none exist."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.forge_panes",
+      "summary": "The desktop dashboard replaces the text-based Forge Console with empty terminal-like panes opened from top hotkeys and saved on an 8-slot board."
+    }
+  ],
+  "affected_tables": [
+    "table.public.users",
+    "table.public.workspaces"
+  ],
+  "affected_columns": [
+    "public.workspaces.user_id",
+    "public.workspaces.name",
+    "public.workspaces.terminal_count",
+    "public.workspaces.terminal_layout",
+    "public.workspaces.created_at",
+    "public.workspaces.updated_at"
+  ],
+  "security_data_rules": [
+    "Workspace API requests from rust-diffforge must include a valid desktop session bearer token.",
+    "The API must scope all workspace reads and writes to the authenticated desktop session user_id.",
+    "Workspace names must be bounded, trimmed, and non-empty before insert.",
+    "terminal_count must be constrained to 1 through 8 before insert.",
+    "terminal_layout must be constrained to non-overlapping pane metadata on a 4-column by 2-row board.",
+    "The desktop app must not show hard-coded placeholder workspaces once workspace sync is available."
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": true,
+    "safe_deploy_order": [
+      "Apply SQL migration for workspaces.",
+      "Deploy next-diffforge desktop workspaces API.",
+      "Ship rust-diffforge workspace sync and pane UI."
+    ],
+    "backward_compatible": true,
+    "notes": "Existing desktop auth remains compatible. New desktop builds need the workspace endpoint to create and fetch persisted workspaces."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy JSON and SQL graph references."
+    },
+    {
+      "command": "npm run lint",
+      "working_directory": "next-diffforge",
+      "summary": "Validate protected workspace API route."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate desktop workspace and pane UI."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "rust-diffforge/src-tauri",
+      "summary": "Validate desktop workspace API commands."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06"
+}
