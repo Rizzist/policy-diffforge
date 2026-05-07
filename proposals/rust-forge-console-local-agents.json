@@ -3,19 +3,69 @@
   "id": "proposal.rust.forge_console_local_agents",
   "kind": "proposal",
   "status": "pending",
-  "summary": "Add a Forge Console to rust-diffforge that installs, detects, and auto-updates npm-backed local Codex and Claude Code CLIs, recommends provider-native installers for missing agents, launches provider-owned login flows, and runs read-only prompts through selected local agents.",
+  "summary": "Add a Forge Console to rust-diffforge that installs, detects, and auto-updates npm-backed local Codex and Claude Code CLIs, recommends provider-native installers for missing agents, launches provider-owned login flows, and runs read-only model-selectable prompts through selected local agents.",
   "scope": "single_project",
   "project_id": "rust-diffforge",
   "review_items": [
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.forge_console",
-      "summary": "Authenticated desktop users can write prompts in a Forge Console UI, copy responses, and choose Codex or Claude Code as the local agent engine."
+      "summary": "Authenticated desktop users can write prompts in a Forge Console UI, copy responses, choose Codex or Claude Code as the local agent engine, and choose a bounded model argument for each pane run."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_pane_interaction",
+      "summary": "Terminal panes use a native-feeling top bar for dragging, icon-only close controls, and direct resize handles instead of text movement and size buttons."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.terminal_canvas",
+      "summary": "The Forge workspace renders as a near full-bleed terminal canvas with launch controls overlaid instead of taking terminal board space."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.terminal_boot_banner",
+      "summary": "Every newly opened or restored terminal pane immediately prints a provider-specific terminal banner for Forge Console, Codex, or Claude Code."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_prompt",
+      "summary": "Terminal panes are backed by xterm and local PTY sessions instead of a manual prompt/composer UI, so provider CLIs handle prompt rendering, Ctrl-C, ANSI redraws, and interactive input."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.provider_terminal_sessions",
+      "summary": "Opening a Codex or Claude Code pane spawns the corresponding allowlisted local CLI inside the pane PTY, while Forge Console opens the user's shell in the shared workspace directory."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.pty_terminal_commands",
+      "summary": "Interactive PTY sessions may only spawn fixed provider commands or the user's default shell, with pane id validation and bounded resize/write/close commands."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_layout_reflow",
+      "summary": "Dragging, resizing, opening, and closing terminal panes repacks the remaining panes into the 4 by 2 board and relies on the existing debounced workspace layout save to persist the settled layout."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.codex_command_args",
+      "summary": "Codex prompt execution passes approval policy as a top-level Codex option and captures the final answer from a bounded output file instead of rendering the full Codex transcript."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_defaults",
+      "summary": "New desktop workspaces default to eight terminal panes so the 4 by 2 board starts fully occupied."
+    },
+    {
+      "kind": "contract_shape_changed",
+      "target_id": "rust-diffforge.forge_prompt_request",
+      "summary": "The local Tauri prompt request accepts optional model metadata and bounded image attachments for providers/models that support image transport."
     },
     {
       "kind": "security_level_changed",
       "target_id": "rust-diffforge.local_agent_commands",
-      "summary": "The Tauri command layer allows only fixed Codex and Claude Code provider commands for install, status, login launch, and prompt execution."
+      "summary": "The Tauri command layer allows only fixed Codex and Claude Code provider commands for install, status, login launch, prompt execution, model selection, and supported image attachment flags."
     },
     {
       "kind": "function_logic_changed",
@@ -60,7 +110,21 @@
     "The app may only spawn fixed allowlisted provider commands, not arbitrary user-supplied shell commands.",
     "Forge Console prompt execution must default to a read-only/safe mode and must not apply file patches automatically.",
     "Prompt text may be passed to local provider CLIs, so the UI must make the selected provider explicit before execution.",
-    "Provider status checks may detect local credentials but must not read, display, or persist secret values."
+    "Each terminal pane must visibly identify its active local provider before the user sends a prompt.",
+    "Terminal launcher controls may be overlaid but must not obscure terminal pane controls or terminal prompt input.",
+    "The terminal surface must use xterm backed by a local PTY rather than a manual transcript/input renderer.",
+    "The terminal input must live inside the xterm scrollback rather than in a separate bottom composer bar.",
+    "Codex and Claude Code panes must launch the selected provider CLI directly so users see the provider's native startup banner and interactive prompt.",
+    "PTY session commands must be bound to validated pane ids and fixed allowlisted provider/shell launch paths.",
+    "Terminal resize events may update PTY dimensions but must not allow arbitrary command execution.",
+    "The active working directory must be a shared workspace-level display and should use compact labels in per-pane terminal prompts.",
+    "Terminal pane layout changes should automatically repack non-active panes without overlapping or losing terminals.",
+    "Closing a terminal should resize and repack the remaining panes to use as much of the 4 by 2 board as possible.",
+    "Codex output should show the final model response rather than the full CLI session transcript when the CLI supports last-message capture.",
+    "Provider status checks may detect local credentials but must not read, display, or persist secret values.",
+    "Model arguments must be optional, visibly selected in the pane UI, and validated as bounded model identifiers before they are passed to provider CLIs.",
+    "Image attachments must be accepted only when the selected provider/model supports image transport, must be MIME/type and size bounded, and must be passed as temporary files to fixed provider image flags.",
+    "The desktop app must not persist attached image bytes after a prompt run."
   ],
   "tests": [
     {

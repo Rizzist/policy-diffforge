@@ -30,7 +30,12 @@
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.forge_panes",
-      "summary": "The desktop dashboard replaces the text-based Forge Console with empty terminal-like panes opened from top hotkeys and saved on an 8-slot board."
+      "summary": "The desktop dashboard replaces the text-based Forge Console with terminal-like panes opened from top hotkeys, automatically reflowed on the 8-slot board, and saved after the layout settles."
+    },
+    {
+      "kind": "contract_shape_changed",
+      "target_id": "route.next.desktop_workspaces.terminal_layout",
+      "summary": "The desktop workspace terminal_layout contract accepts any non-overlapping pane rectangle that fits inside the 4 by 2 board and may persist a bounded model id for provider terminal restart."
     }
   ],
   "affected_tables": [
@@ -51,6 +56,8 @@
     "Workspace names must be bounded, trimmed, and non-empty before insert.",
     "terminal_count must be constrained to 1 through 8 before insert.",
     "terminal_layout must be constrained to non-overlapping pane metadata on a 4-column by 2-row board.",
+    "terminal_layout pane rectangles may use any width from 1 through 4 and any height from 1 through 2 as long as every pane remains inside the board and total occupied cells do not overlap.",
+    "terminal_layout model ids must be optional, bounded strings and must not be treated as executable command text.",
     "The desktop app must not show hard-coded placeholder workspaces once workspace sync is available."
   ],
   "compatibility": {
