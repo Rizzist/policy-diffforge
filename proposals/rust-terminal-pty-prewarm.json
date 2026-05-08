@@ -1,0 +1,73 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_pty_prewarm",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Pre-open workspace terminal PTYs during startup agent readiness checks, then launch the selected agent after the startup gate clears.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_prewarm",
+      "summary": "Authenticated paid workspace rendering mounts under the startup overlay so terminal panes can pre-open plain shell PTYs while agent checks or updates are still blocking visible entry."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_agent_launch",
+      "summary": "WorkspaceTerminal can defer agent CLI initialization until the startup gate is complete, using the already-open PTY instead of spawning the full agent process during readiness checks."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.tauri_terminal_start_agent",
+      "summary": "The Tauri host exposes a bounded terminal_start_agent command that validates the pane and provider before writing the agent command into the current PTY."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.auth_billing_contract",
+      "summary": "The authenticated dashboard still renders only for authenticated paid users; free users and signed-out users cannot pre-open workspace terminals."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Mount the authenticated dashboard behind the startup overlay and add terminal prewarm/deferred agent launch props."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Support shell-only terminal_open requests and add terminal_start_agent for launching an agent inside the prewarmed PTY."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "This changes only local desktop startup sequencing. Existing auth, billing, workspace API, CLI install/update, and terminal write/resize/close contracts are preserved."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate the Rust Tauri command changes."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}
