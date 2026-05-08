@@ -1,0 +1,207 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.workspace_terminal",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add a live rust-diffforge workspace terminal plus simplified editable workspace settings for renaming the shared workspace and choosing local terminal count/root directory.",
+  "scope": "cross_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_launch",
+      "summary": "The authenticated workspace preloads local agent status during workspace initialization, prefers ready Codex, falls back to ready Claude Code, and opens a shell-backed PTY terminal for the selected provider."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_initialization",
+      "summary": "Workspace loading and parallel local agent readiness checks run once during the paid authenticated workspace initialization phase instead of being retriggered by active workspace selection changes."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_ui",
+      "summary": "The blank workspace surface becomes a live xterm terminal pane with provider status, command metadata, retry/recheck actions, restart control, and visible PTY output."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_restart",
+      "summary": "The workspace terminal can be restarted from an overlaid top-center pill, closing the current PTY session and opening a fresh one for the same workspace/provider/root."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_spawn_queue",
+      "summary": "Workspace terminal pane spawns and respawns run through a sequential frontend queue so multi-pane layouts do not invoke terminal_open for every pane at the same time."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_close",
+      "summary": "The workspace terminal has an explicit muted close action in the top-center icon pill that immediately invokes the native terminal close command, terminates the shell-wrapped Codex or Claude Code process, and removes the pane from the local multi-terminal layout when more than one pane is open."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_close_isolation",
+      "summary": "Closing one terminal pane must not remount, close, reopen, or clear the xterm output buffers of surviving terminal panes."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_settings_ui",
+      "summary": "Workspace rail rows reveal an overlaid settings action only on hover/focus; opening it shows a centered rounded settings modal with editable workspace name, local terminal count, and local root directory controls."
+    },
+    {
+      "kind": "route_contract_changed",
+      "target_id": "route.next.desktop_workspaces",
+      "summary": "The desktop workspaces API adds an authenticated PATCH operation that renames one workspace owned by the current desktop session user."
+    },
+    {
+      "kind": "data_access_changed",
+      "target_id": "table.public.workspaces",
+      "summary": "The workspaces write path adds scoped updates to the name and updated_at columns while preserving user_id ownership checks and existing uniqueness behavior."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_settings_save",
+      "summary": "Saving workspace settings persists name changes through the desktop API and stores terminal count/root directory as local desktop settings."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_layout",
+      "summary": "The live terminal surface fills the available workspace width and height with resizable terminal panels when a workspace has multiple local terminals."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_count",
+      "summary": "Workspace settings allow spawning 1 to 16 local terminal panes for one workspace, with each pane using its own fixed PTY pane id."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_resizable_panels",
+      "summary": "The React workspace terminal layout uses react-resizable-panels to resize nested terminal rows and columns without replacing the existing xterm PTY bridge."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_state_locking",
+      "summary": "Terminal PTY instances move from one coarse mutex-protected session map to an Arc/RwLock terminal map with per-instance handle locks so writes, resizes, opens, and closes do not unnecessarily block unrelated panes."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_process_cleanup",
+      "summary": "Closing or replacing a terminal removes the pane from the active terminal map before killing and polling the child process so stale PTY processes are reaped without holding the terminal map lock."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_exact_resize",
+      "summary": "xterm pane resize now computes one proposed columns/rows pair, applies it to the renderer, and sends that same exact pair to the Tauri PTY resize command."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_resize_many",
+      "summary": "Terminal resize requests are coordinated through a workspace-level resize scheduler and a native terminal_resize_many command that applies exact deduplicated sizes for multiple panes in one invoke."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_dev_metrics",
+      "summary": "The terminal surface shows compact development metrics and writes local JSONL telemetry under rust-diffforge/logs for terminal startup, xterm/WebGL setup, output first-byte timing, and resize batching."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_renderer",
+      "summary": "Each workspace xterm pane loads the WebGL addon after opening so terminal rendering uses the WebGL2 GPU renderer when available, while keeping the default renderer as fallback."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_root",
+      "summary": "The workspace terminal launch accepts one locally saved, Tauri-validated root directory per workspace and starts every local agent terminal pane for that workspace in that directory when configured."
+    },
+    {
+      "kind": "condition_changed",
+      "target_id": "rust-diffforge.workspace_default_root",
+      "summary": "When no usable local root directory is saved, the frontend drops stale Windows system root settings and the native default working-directory resolver falls back to the Tauri project root or user home before launching agent terminals."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.forge_prompt_root",
+      "summary": "One-shot local agent prompt runs may receive the same optional Tauri-validated workingDirectory value so Codex and Claude Code executions can share the selected project root."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.terminal_open",
+      "summary": "Terminal launch remains limited to fixed local Codex and Claude Code command candidates and rejects non-directory root paths, while frontend readiness state decides when to launch a provider."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.agent_update_permissions",
+      "summary": "Installed agents expose an npm update action and permission failures show recovery guidance instead of implying the app can silently elevate."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_contract",
+      "summary": "Desktop web auth, workspace API auth, billing gate, and database contracts are unchanged; root directory is a local desktop setting, not a shared SQL workspace column."
+    }
+  ],
+  "rules": [
+    "Workspace terminal launch must use the existing portable-pty command bridge instead of shelling through user-provided command strings.",
+    "Codex is preferred when both Codex and Claude Code are installed and authenticated.",
+    "Local agent readiness should be checked once during authenticated workspace initialization and manually through Recheck actions, not repeatedly from render or active workspace selection changes.",
+    "Codex and Claude Code status checks should run in parallel so startup waits for the slowest provider instead of checking both providers serially.",
+    "If no local agent is ready, the workspace must show recovery actions instead of opening an unauthenticated terminal.",
+    "Workspace settings may update the shared workspace name through the authenticated desktop workspaces API, but terminal count and root directory remain local desktop settings.",
+    "Workspace settings must open as a centered rounded modal from the workspace rail instead of being embedded in global desktop settings.",
+    "Workspace rail settings controls must be overlaid inside the workspace row and hidden until hover or keyboard focus so workspace text layout does not shift.",
+    "Workspace name changes must validate the desktop session token and update only a workspace owned by that user.",
+    "Root directory changes must be validated by the Tauri host as existing directories before being saved or used for a PTY launch.",
+    "Terminal count is bounded local UI state from 1 to 16 and must not imply extra hosted workspace capacity or database columns.",
+    "Closing an individual terminal in a multi-pane workspace must remove that pane from the active layout, decrement and persist the local terminal count, and keep the count bounded to at least one without changing SQL/database capacity.",
+    "Closing an individual terminal must keep surviving panes mounted with their existing pane ids, instance ids, PTY sessions, and xterm scrollback buffers.",
+    "Multiple terminals must render through react-resizable-panels and keep each xterm container resize-observed so terminal fit/resize events continue to reach Tauri.",
+    "The terminal map must be stored as Arc<RwLock<HashMap<String, TerminalInstance>>> with per-instance locks around non-Sync PTY handles so unrelated panes are not serialized behind one global mutex.",
+    "Terminal close and replacement must remove the instance from the active map before process cleanup, then kill and poll the child outside the map lock so stale PTY processes do not accumulate.",
+    "Terminal resize must apply the same validated columns/rows to xterm and to the native PTY; the Rust host may reject out-of-range sizes but must not silently clamp valid frontend sizes.",
+    "Terminal output may use the existing Tauri event bridge; every output and exit event must include pane_id and instance_id so stale events cannot write into replacement panes.",
+    "Native resize calls for multi-pane layouts must be batched through terminal_resize_many and deduplicated by pane id and instance id.",
+    "Development metrics must be visible in the terminal workspace and terminal startup/resize steps must also be written as JSONL to the local ignored rust-diffforge/logs folder.",
+    "The xterm WebGL addon must be best-effort for each terminal pane: terminal panes continue to open with xterm's default renderer if WebGL2 is unavailable or the WebGL context is lost.",
+    "Empty, missing, or stale saved workspace root settings must not let Windows system startup folders such as C:\\Windows, C:\\Windows\\System32, or C:\\Windows\\SysWOW64 become the agent working directory.",
+    "Changing a workspace root directory may restart all mounted local agent terminal panes for that workspace so Codex, Claude Code, and future panes use the same selected directory on their next session.",
+    "One-shot local agent prompt runs that include workingDirectory must validate it with the same Tauri root-directory resolver used by live terminal launches.",
+    "Terminal restart must reuse the fixed terminal command bridge and close the existing pane before opening a replacement PTY session.",
+    "Terminal spawn and restart requests from multi-pane workspace layouts must pass through a sequential open queue to avoid starting all PTYs at once.",
+    "Ctrl+C should not be forwarded to workspace agent terminals; users must use the explicit close or restart controls to end the pane.",
+    "The terminal top pill should expose icon-only restart and close controls without a visible title or running state text; when the final bounded pane is closed and remains mounted, the pane should show a visible closed-state message.",
+    "The terminal close control must call the existing terminal_close command immediately, remain visually muted compared with restart, and terminate the active shell-wrapped Codex or Claude Code process tree before the pane is marked closed.",
+    "Agent terminals should launch through an interactive shell wrapper so Ctrl+C or agent process exit leaves the pane usable instead of orphaning xterm with no child process.",
+    "Agent npm update permission failures must not auto-elevate; the UI should explain closing running terminals, retrying elevated, or fixing the npm global prefix.",
+    "Terminal input, resize, and close operations must continue to validate pane ids and bound input size in the Tauri command layer.",
+    "The UI must render actual PTY output through xterm and avoid fake terminal transcripts."
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "This feature extends the desktop workspace API only for scoped workspace renames. Workspace root paths and terminal count remain local-only settings and do not alter the workspaces table schema."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle and xterm fit/webgl imports."
+    },
+    {
+      "command": "npm run build",
+      "working_directory": "diffforge/next-diffforge",
+      "summary": "Validate the Next.js desktop workspaces API rename change."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri portable-pty terminal commands."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

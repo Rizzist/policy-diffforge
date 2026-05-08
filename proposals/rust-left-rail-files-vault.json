@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.left_rail_files_vault",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Preserve the rust-diffforge workspace list while adding bottom-left Agents, Files, and Vault views, add a VS Code-like read-only file explorer for the active workspace directory, and keep Vault as an honest placeholder.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.desktop_left_rail",
+      "summary": "The authenticated desktop rail keeps the workspace list with per-workspace settings controls at the top and adds Agents, Files, and Vault entries to the bottom-left action area before Settings and Sign out."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.agents_view",
+      "summary": "The Agents rail item opens the existing multi-terminal local agent workspace surface."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.files_view",
+      "summary": "The Files rail item opens a two-pane read-only workspace file browser with a directory explorer on the left and selected file contents on the right."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_file_bridge",
+      "summary": "The Tauri host adds bounded read-only commands for listing directories and reading UTF-8 files under the validated workspace root."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.workspace_file_bridge",
+      "summary": "Workspace file access rejects absolute or parent-traversing relative paths and verifies canonical file/directory targets remain inside the configured workspace root."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.vault_view",
+      "summary": "The Vault rail item opens a non-functional placeholder surface without claiming vault storage behavior exists."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Preserve the workspace list, add bottom-left Agents/Files/Vault routing, and implement the read-only file explorer UI."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add read-only workspace directory listing and file reading Tauri commands."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the authenticated desktop UI and native host command surface."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "rust-diffforge/src-tauri",
+      "summary": "Validate Rust Tauri host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

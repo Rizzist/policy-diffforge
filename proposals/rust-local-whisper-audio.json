@@ -1,0 +1,120 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.local_whisper_audio",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Implement the rust-diffforge Audio tab with a local Whisper model/runtime installer, a global-shortcut recorder widget, low-power buffered capture, VAD-gated local transcription, and focused text insertion.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_view",
+      "summary": "The Audio workspace view becomes a functional local dictation setup surface that reports Whisper model and runtime state, downloads the selected ggml base.en model, installs the packaged Windows whisper.cpp runtime when supported, detects compatible PATH/homebrew Linux and macOS runtimes, and can open the recorder widget after install."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.tauri_audio_host",
+      "summary": "The Tauri host downloads the Whisper model into app data, validates model/runtime hashes after download, resolves a local whisper.cpp CLI runtime per platform, transcribes short VAD-filtered WAV microphone captures locally, and never sends captured audio to the hosted API."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget",
+      "summary": "A separate hidden audio-widget window is created on demand and shown only when the local Whisper model and runtime are available."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_shortcut",
+      "summary": "A global CommandOrControl+Shift+Space shortcut toggles the recorder widget; if Whisper is not installed the widget is not shown."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.focused_text_insertion",
+      "summary": "After transcription the widget hides and the Tauri host attempts to insert the transcript into the currently focused operating-system text target using Windows SendInput, macOS osascript/System Events, or Linux xdotool/wl-copy+wtype/ydotool fallbacks."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.low_power_audio_buffer",
+      "summary": "The widget keeps a low-power microphone graph warm while visible, continuously updates a small PCM ring buffer, discards old frames when idle, and uses client-side VAD to keep pre-roll without invoking Whisper until the user finishes a speech segment."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.vad_filtering",
+      "summary": "The widget filters buffered audio with simple RMS/peak/silence VAD before sending a bounded WAV to the local Tauri transcription command, preventing silent clips from waking Whisper."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.local_audio_data",
+      "summary": "Microphone audio is captured in the widget while the widget is visible, held only in memory in a bounded rolling buffer, trimmed by VAD, encoded to short WAV payloads, sent only to the local Tauri command boundary, and bounded by size and duration limits before local transcription."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or hosted API data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Replace the Audio placeholder with model installer controls and add the audio-widget recorder route."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add model download/status, local Whisper transcription, widget window, global shortcut, and focused text insertion commands."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/Cargo.toml",
+      "summary": "Add local audio transcription and shortcut dependencies."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/capabilities/default.json",
+      "summary": "Allow the main and audio-widget windows to use the shared default capability."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/tauri.conf.json",
+      "summary": "Allow microphone/media capture needed by the recorder widget WebView."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/Info.plist",
+      "summary": "Add the macOS microphone usage string required for packaged microphone access."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The feature is local to the desktop app. It adds optional model files under app data and does not alter auth, billing, hosted API, or shared database contracts."
+  },
+  "data_handling": {
+    "captures_microphone_audio": true,
+    "sends_audio_to_remote_service": false,
+    "stores_audio_recordings": "temporary WAV files are created only for local whisper.cpp CLI execution and removed immediately after transcription",
+    "stores_transcripts": false,
+    "model_storage": "The selected ggml Whisper model is downloaded to the Tauri app data directory."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and local Whisper host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

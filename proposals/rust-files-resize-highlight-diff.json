@@ -1,0 +1,88 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.files_resize_highlight_diff",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Make the rust-diffforge Files view splitter resizable, add syntax-colored file previews, and show bounded git diffs for modified files only.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.files_view",
+      "summary": "The Files explorer and preview panes are separated by a draggable VS Code-like resize handle with requestAnimationFrame-batched layout persistence, allowing the explorer to expand into the dominant pane while keeping a bounded preview."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.file_preview",
+      "summary": "Text file previews use language-aware syntax coloring for common workspace file types."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_file_bridge",
+      "summary": "The Tauri host exposes a bounded read-only git diff command scoped to validated workspace files."
+    },
+    {
+      "kind": "condition_added",
+      "target_id": "rust-diffforge.file_diff_preview",
+      "summary": "Diffs are requested only when the selected file git status is modified, not for added or untracked files."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.workspace_file_bridge",
+      "summary": "Git diff requests reuse workspace root and child path validation, run with a timeout, and truncate large diff output before returning it to the WebView."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/package.json",
+      "summary": "Add PrismJS for syntax highlighting."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/package-lock.json",
+      "summary": "Lock the PrismJS dependency."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Render resizable Files panes, syntax-highlighted previews, and modified-file diff panels."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add a read-only bounded workspace git diff Tauri command."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the authenticated desktop Files view and native host read-only command surface."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Rust Tauri host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

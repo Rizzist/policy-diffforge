@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.local_agents",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add local Codex and Claude Code installation, status, and account actions in rust-diffforge settings.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_install",
+      "summary": "Users can open official native installer pages, use fixed npm global package install commands when npm is detected, and recheck local agent status from settings."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_status_recheck",
+      "summary": "Agent status automatically rechecks after install, update, or account actions so settings can show local CLI readiness."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.local_agent_commands",
+      "summary": "The Tauri command layer allows only fixed Codex and Claude Code provider commands for install, status, account connection, and disconnect actions."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_auth",
+      "summary": "DiffForge does not store provider secrets; users authenticate with official local CLIs and the app detects local credential state."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_contract",
+      "summary": "DiffForge web login, desktop sessions, billing checks, and backend auth APIs are unchanged by local agent settings."
+    }
+  ],
+  "rules": [
+    "DiffForge must not ask users to paste OpenAI or Anthropic API keys for this local-agent flow.",
+    "Provider-native installer pages must be recommended over npm when both options are available.",
+    "The npm install action must appear only when npm is detected on PATH.",
+    "Provider npm install actions must run only fixed official package install commands for the selected provider.",
+    "Installed agents detected as global npm packages may auto-update with the fixed provider npm package command.",
+    "Auto-update failures must be recoverable status messages and must not block connecting to an already installed agent.",
+    "Provider install failures must be shown as recoverable UI state with retry and manual command fallback guidance.",
+    "Permission-denied install failures must not silently escalate privileges or rerun with elevated rights.",
+    "Users without npm must still have an external provider-native install path.",
+    "External installer links must be fixed allowlisted provider destinations, not user-supplied URLs.",
+    "Installed provider cards should show only Connect and Use actions, with install choices hidden unless the provider is missing.",
+    "Disabled Connect and Use controls must explain that the local provider CLI needs to be installed.",
+    "Provider authentication must be delegated to the official Codex and Claude Code CLIs.",
+    "Provider status checks may detect local credentials but must not read, display, or persist secret values."
+  ],
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "summary": "Validate policy JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "rust-diffforge",
+      "summary": "Validate the desktop React shell builds."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "rust-diffforge/src-tauri",
+      "summary": "Validate local agent command implementations."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-06",
+  "updated_at": "2026-05-07"
+}

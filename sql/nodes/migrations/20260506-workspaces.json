@@ -6,7 +6,7 @@
   "project_id": "next-diffforge",
   "scope": "project",
   "name": "workspaces",
-  "summary": "Creates user-owned desktop workspaces with bounded terminal count and 4 by 2 board layout metadata.",
+  "summary": "Creates user-owned desktop workspaces.",
   "migration": {
     "file": "policy-diffforge/sql/migrations/20260506_workspaces.sql",
     "engine": "cockroachdb",
@@ -19,12 +19,7 @@
     {
       "kind": "database_table_added",
       "target_id": "table.public.workspaces",
-      "summary": "Adds workspaces table with terminal count and terminal_layout metadata."
-    },
-    {
-      "kind": "database_column_added",
-      "target_id": "column.public.workspaces.terminal_layout",
-      "summary": "Adds JSONB terminal layout metadata for desktop workspace panes."
+      "summary": "Adds workspaces table with user ownership, bounded name, timestamps, and per-user workspace-name uniqueness."
     }
   ],
   "affected_tables": [

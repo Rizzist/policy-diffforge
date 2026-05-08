@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.mcp_management",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Replace the rust-diffforge MCP placeholder with a local MCP registry UI for adding server configs and selecting agent/workspace access.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.mcps_view",
+      "summary": "The MCPs rail item opens an operational local settings surface instead of a placeholder."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.local_mcp_registry",
+      "summary": "Users can create and edit local MCP definitions for stdio command, HTTP URL, SSE URL, or pasted JSON config modes."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.mcp_access_scope",
+      "summary": "Each saved MCP can be scoped to selected local agents and selected synced workspaces through local UI state."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.agent_coordinator_mcp",
+      "summary": "A built-in Agent Coordinator MCP appears in the registry as planned and disabled until the runtime implementation exists."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.mcp_runtime",
+      "summary": "This change stores local configuration only and does not start MCP processes, connect to user MCP URLs, or expose MCPs to agents yet."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or server data access change is required."
+    }
+  ],
+  "rules": [
+    "The MCP tab must not execute user-supplied commands or contact user-supplied URLs until a separate MCP runtime proposal is accepted.",
+    "The Agent Coordinator MCP must default to disabled and remain non-toggleable until its runtime behavior exists.",
+    "Local MCP definitions may include command, arguments, URL, headers, environment text, and JSON config text, but the UI must present them as saved configuration rather than connected servers.",
+    "Agent and workspace access selections are local routing intent only; they must not imply that Codex, Claude Code, or workspace terminals already consume MCP configuration.",
+    "Saved MCP config must remain local desktop state and must not be sent to the backend by this change."
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Implement MCP registry state, editor, access controls, Agent Coordinator placeholder, and local persistence."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "The change is limited to authenticated desktop UI and localStorage-backed settings."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

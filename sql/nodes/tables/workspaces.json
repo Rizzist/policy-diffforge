@@ -13,7 +13,7 @@
     "table": "workspaces"
   },
   "name": "workspaces",
-  "summary": "Stores desktop workspaces owned by a Diffforge user, including the terminal board layout metadata.",
+  "summary": "Stores desktop workspaces owned by a Diffforge user.",
   "display": {
     "label": "workspaces",
     "group": "Database",
@@ -29,8 +29,8 @@
     "main_columns": [
       "user_id",
       "name",
-      "terminal_count",
-      "terminal_layout"
+      "created_at",
+      "updated_at"
     ]
   },
   "ownership": {
@@ -90,36 +90,6 @@
         "Must be trimmed and length-bounded before insert."
       ]
     },
-    "terminal_count": {
-      "id": "column.public.workspaces.terminal_count",
-      "name": "terminal_count",
-      "sql_type": "INT8",
-      "nullable": false,
-      "primary_key": false,
-      "unique": false,
-      "default": "1",
-      "summary": "Number of terminal panes in the workspace board.",
-      "data_classification": "preference",
-      "rules": [
-        "Must be between 1 and 8."
-      ]
-    },
-    "terminal_layout": {
-      "id": "column.public.workspaces.terminal_layout",
-      "name": "terminal_layout",
-      "sql_type": "JSONB",
-      "nullable": false,
-      "primary_key": false,
-      "unique": false,
-      "default": "'[]'::JSONB",
-      "summary": "Terminal layout metadata for the 4-column by 2-row desktop workspace board.",
-      "data_classification": "preference",
-      "rules": [
-        "Must be a JSON array with 1 to 8 terminal pane records.",
-        "Each pane must fit within the 4 by 2 board and must not overlap another pane.",
-        "Supported pane sizes are 1x1, 2x1, 1x2, and 4x2."
-      ]
-    },
     "created_at": {
       "id": "column.public.workspaces.created_at",
       "name": "created_at",
@@ -158,24 +128,6 @@
     }
   ],
   "constraints": [
-    {
-      "id": "constraint.public.workspaces.terminal_count_range",
-      "name": "workspaces_terminal_count_range",
-      "kind": "check",
-      "columns": [
-        "terminal_count"
-      ],
-      "summary": "Keeps workspace terminal count between 1 and 8."
-    },
-    {
-      "id": "constraint.public.workspaces.terminal_layout_array",
-      "name": "workspaces_terminal_layout_array",
-      "kind": "check",
-      "columns": [
-        "terminal_layout"
-      ],
-      "summary": "Requires terminal layout metadata to be stored as a JSON array."
-    },
     {
       "id": "constraint.public.workspaces.user_name_unique",
       "name": "workspaces_user_name_unique",

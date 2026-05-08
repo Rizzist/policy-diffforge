@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.vscode_file_explorer_style",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Restyle the rust-diffforge Files view to use a compact VS Code-like explorer treatment with codicon-based folder and file-type icons.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.files_view",
+      "summary": "The Files view renders denser Explorer rows, VS Code-like sidebar chrome, and type-aware codicon file glyphs while preserving read-only workspace browsing."
+    },
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "file.rust.app_shell",
+      "summary": "The React app shell imports the VS Code Codicons asset package and maps workspace file extensions to compact explorer icons."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/package.json",
+      "summary": "Add the @vscode/codicons dependency for VS Code-like explorer glyphs."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/package-lock.json",
+      "summary": "Lock the installed @vscode/codicons dependency."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Restyle the Files view and render type-aware codicon glyphs for explorer rows and preview headers."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is limited to the authenticated desktop Files view styling and frontend asset dependency."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_performance",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Optimize rust-diffforge terminal startup, resize batching, WebGL attachment, and telemetry logging without changing terminal contracts.",
+  "scope": "multi_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_command_resolution",
+      "summary": "Cache agent command candidate resolution so repeated terminal opens do not repeatedly run npm global-prefix discovery."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_resize",
+      "summary": "Move terminal fit scheduling to a workspace-level resize coordinator that observes pane containers and flushes native resize batches once per animation frame."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_webgl_attach",
+      "summary": "Defer and stagger xterm WebGL renderer attachment so terminal startup and first output are not blocked by every pane attaching WebGL immediately."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_telemetry",
+      "summary": "Serialize terminal telemetry writes through a shared native writer and batch frontend telemetry events to prevent corrupt JSONL output during resize storms."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_open_telemetry",
+      "summary": "Add frontend telemetry for workspace activation, workspace surface commits, and terminal mount timing so pre-agent workspace open delays can be measured."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_render_probe",
+      "summary": "Add frontend render diagnostics for xterm DOM, canvas, buffer, cursor, and viewport state so blank WebGL panes can be diagnosed without logging terminal text."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_blank_startup_recovery",
+      "summary": "Detect terminal startups that only receive a tiny control chunk and never paint visible buffer rows, then refresh WebGL and retry the pane with capped backoff."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_spawn_pacing",
+      "summary": "Pace queued terminal opens slightly so many Codex processes do not all initialize at the same instant."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_close_all_cleanup",
+      "summary": "Detach native close-all cleanup so app close cannot drain PTY state and leave the WebView stuck with stale terminal panes."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_ready_gate",
+      "summary": "Shorten the post-auth workspace ready gate because telemetry shows workspace API loading finishes quickly and the fixed 1800 ms wait dominates the first open."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_status_startup",
+      "summary": "Measure agent status startup and run npm package metadata checks in parallel with provider runtime checks so terminal readiness is not serialized behind npm metadata."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_spawn_disposed_preflight",
+      "summary": "Skip disposed terminal spawn queue entries before applying spawn pacing and defer dev-only terminal startup slightly so React StrictMode cleanup does not occupy the native spawn queue."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_status_parallel_startup",
+      "summary": "Start npm version, npm package metadata, and provider runtime checks together so agent readiness is not blocked by npm metadata sequencing."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_retry_cadence",
+      "summary": "Use an 800 ms blank-startup check/retry cadence and an 800 ms terminal spawn gap to keep retries and terminal launches from overlapping."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_adaptive_spawn_pacing",
+      "summary": "Use a shorter initial terminal spawn gap and reserve the 800 ms gap for retry launches after telemetry showed the global 800 ms gap made workspace startup visibly laggier."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_blank_retry_confirm",
+      "summary": "Treat the 800 ms blank-startup check as a probe and require a second 800 ms confirmation before restarting, reducing false retry churn while keeping retry attempts close together."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_status_safe_cache",
+      "summary": "Cache non-secret local agent readiness booleans and versions so known-good agents can render the workspace while fresh agent status checks run in the background."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_status_startup_gate",
+      "summary": "Run fresh agent status and npm update availability checks during authenticated workspace loading, prompt users to update available npm-installed agents before entering, and auto-open agent settings when no ready agent is available."
+    }
+  ],
+  "rules": [
+    "Terminal pane ids, instance id stale-checks, and PTY size validation remain enforced.",
+    "The terminal_open, terminal_resize_many, terminal_write, terminal_close, and terminal_close_all command contracts remain backward compatible.",
+    "Telemetry changes may reduce hot-path IPC volume but must preserve phase names needed to diagnose startup and resizing.",
+    "Terminal render diagnostics must not log raw terminal output, prompts, commands, or user-entered text.",
+    "Blank-startup recovery may retry a pane only with a low cap, an 800 ms probe/confirm cadence, and must keep WebGL enabled.",
+    "Exited or missing native PTY sessions must stop receiving resize requests from the frontend.",
+    "WebGL remains best-effort and falls back to the default xterm renderer when unavailable.",
+    "Agent package updates must remain user-triggered and must not auto-update before workspace entry without an explicit click.",
+    "No auth, billing, database, or cross-project API contract changes are introduced."
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "The changes are internal to rust-diffforge terminal runtime behavior and keep existing Tauri command names and request shapes."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and Rust host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

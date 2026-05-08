@@ -3,7 +3,7 @@
   "id": "proposal.rust.desktop_dashboard_shell",
   "kind": "proposal",
   "status": "pending",
-  "summary": "Add the first authenticated rust-diffforge desktop dashboard shell with workspace navigation, placeholder terminal panes, right-side tabs, settings, and sign out.",
+  "summary": "Add the first authenticated rust-diffforge desktop dashboard shell with workspace navigation, a blank workspace surface, right-side tabs, settings, and sign out.",
   "scope": "cross_project",
   "project_id": "rust-diffforge",
   "review_items": [
@@ -15,7 +15,7 @@
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.authenticated_view",
-      "summary": "The authenticated React state renders workspaces, terminal placeholders, a right-side tab panel, settings, and sign-out controls."
+      "summary": "The authenticated React state renders workspace navigation, a blank workspace surface, a right-side tab panel, settings, and sign-out controls."
     },
     {
       "kind": "producer_behavior_changed",
@@ -70,7 +70,7 @@
     "Saved desktop session validation must either restore a session or fall back to the signed-out web login state within 5 seconds.",
     "If no saved session exists, or a saved session cannot be restored, the signed-out login screen must be shown.",
     "Settings and sign out must remain available from the authenticated shell.",
-    "Terminal, workspace, file, web, and policy panels are placeholders only and must not imply working project data until backed by explicit APIs or local commands.",
+    "The blank workspace surface must not imply working project data until backed by explicit APIs or local commands.",
     "The signed-out web-login flow must remain available and unchanged for unauthenticated users."
   ],
   "cross_project_impact": {

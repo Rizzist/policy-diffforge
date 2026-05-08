@@ -1,0 +1,68 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.git_file_status",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add VS Code-like git status decoration to the rust-diffforge read-only workspace file explorer when the workspace is inside a git repository.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_file_bridge",
+      "summary": "Directory listing and file read responses include optional git status metadata derived from a bounded local git status command when git is available."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.files_view",
+      "summary": "The Files view colors file and folder names by git status, including green untracked files and yellow modified files, and shows the selected file status beside the preview metadata."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.workspace_file_bridge",
+      "summary": "Git status probing remains read-only, bounded by timeout, and scoped to the resolved workspace root."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add optional git status discovery to workspace directory listings and file reads."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Render VS Code-like git status colors and badges in the Files view."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the authenticated desktop Files view and falls back to no git decoration when git is unavailable or the workspace is not in a repository."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Rust Tauri host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

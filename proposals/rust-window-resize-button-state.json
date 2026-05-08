@@ -1,0 +1,56 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.window_resize_button_state",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Update the rust-diffforge custom title bar resize control so it reflects fullscreen or maximized state and restores the window when expanded.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.window_chrome_resize_button",
+      "summary": "The middle title bar resize control shows a restore/minimize-style icon and Restore label when the window is fullscreen or maximized, and shows Maximize when the window is not expanded."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.window_chrome_resize_action",
+      "summary": "Clicking the resize control exits actual fullscreen before falling back to the existing Tauri toggle-maximize behavior."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.window_permissions",
+      "summary": "The desktop capability adds only the Tauri window permissions needed to read fullscreen/maximized state and exit fullscreen from the custom chrome."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_contract",
+      "summary": "Desktop auth, billing, backend API, workspace, terminal, and database contracts are unchanged."
+    }
+  ],
+  "rules": [
+    "Window control buttons must continue to use the Tauri window API rather than app-auth or backend APIs.",
+    "The resize control must reflect both actual fullscreen and normal maximized window states.",
+    "Exiting fullscreen from the resize control must not introduce any auth, billing, workspace, terminal, or database behavior changes.",
+    "The custom title bar must remain available for signed-out, billing-gated, and authenticated desktop states."
+  ],
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the desktop React WebView bundle."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri capability and Rust host configuration."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

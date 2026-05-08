@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.window_terminal_shutdown",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Ensure the app-rendered close button runs native terminal shutdown before closing the Tauri window.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_close_all",
+      "summary": "The Tauri host exposes a terminal_close_all command that drains every active terminal instance from the shared terminal map, emits close progress events, and runs existing terminal cleanup sequences concurrently before returning."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.window_close",
+      "summary": "The app-rendered close button shows a blocking closing overlay, awaits terminal_close_all, displays terminal close progress, and then calls the Tauri window close API."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_close_overlay",
+      "summary": "The desktop shell displays a fullscreen closing workspace overlay with a loader and closed terminal count while terminal cleanup is running."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_contract",
+      "summary": "Desktop auth, billing, workspace API, and database contracts are unchanged."
+    }
+  ],
+  "rules": [
+    "Application close from the custom title bar must trigger the same native terminal process cleanup path used by explicit terminal close controls before closing the window.",
+    "The first close click must immediately show a fullscreen closing workspace overlay so terminal cleanup cannot look like an ignored click.",
+    "The closing overlay must show how many active terminal cleanup sequences have completed out of the total being closed.",
+    "The app should automatically close when terminal cleanup reaches the final count or terminal_close_all returns.",
+    "Closing all terminals must drain the active terminal map before process cleanup so late resize/write calls cannot keep stale PTY handles alive.",
+    "Closing all active terminals during app shutdown should run bounded per-terminal cleanup concurrently so multi-terminal workspaces are not delayed by serial child-process polling.",
+    "The window close action should continue closing the app even if terminal shutdown reports a best-effort failure.",
+    "This change must not alter desktop auth, billing, workspace API, or database behavior."
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "Adds a desktop-only Tauri command and changes the local close-button sequence; no hosted API or data contract changes."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView close-button change."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate the Tauri terminal close-all command."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

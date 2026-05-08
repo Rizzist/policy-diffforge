@@ -43,6 +43,11 @@
       "summary": "Add /api/desktop/auth-codes, /api/desktop/sessions/exchange, and /api/desktop/session contracts for create, exchange, validate, and revoke behavior."
     },
     {
+      "kind": "producer_behavior_changed",
+      "target_id": "next-diffforge.desktop_login_status",
+      "summary": "The /desktop/login handoff page distinguishes in-progress, handoff-sent, and failed states so users see a completion checkmark once the browser has sent the deep link and a clear failure message if the web handoff cannot be created."
+    },
+    {
       "kind": "contract_shape_changed",
       "target_id": "routes.next.desktop_auth.user_plan_status",
       "summary": "Desktop session exchange and validation responses include user.planStatus derived from server billing state so rust-diffforge can gate dashboard access."

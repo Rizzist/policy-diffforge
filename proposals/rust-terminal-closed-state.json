@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_closed_state",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Show a clear closed-state message when the final rust-diffforge workspace terminal is closed and remains mounted.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_close",
+      "summary": "Closing the final workspace terminal continues to keep one bounded terminal pane mounted, but the closed pane now displays visible Terminal Closed status text instead of an empty surface."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Render and style visible status copy in the terminal closed surface."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the authenticated desktop terminal UI and keeps the existing close/restart command behavior."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}

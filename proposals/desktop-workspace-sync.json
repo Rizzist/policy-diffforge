@@ -3,39 +3,39 @@
   "id": "proposal.desktop.workspace_sync",
   "kind": "proposal",
   "status": "pending",
-  "summary": "Add authenticated desktop workspace sync backed by CockroachDB and replace placeholder workspaces with user-created workspace records plus terminal board layout metadata.",
+  "summary": "Add authenticated desktop workspace sync backed by CockroachDB and render the desktop dashboard as a blank workspace surface.",
   "scope": "cross_project",
   "project_id": "rust-diffforge",
   "review_items": [
     {
       "kind": "database_table_added",
       "target_id": "table.public.workspaces",
-      "summary": "Adds user-owned workspaces with first-run terminal count and 4 by 2 terminal layout metadata."
+      "summary": "Adds user-owned workspaces with a name and timestamps."
     },
     {
       "kind": "database_migration_added",
       "target_id": "migration.20260506.workspaces",
-      "summary": "Creates the workspaces table with user ownership, uniqueness, and terminal count constraints."
+      "summary": "Creates the workspaces table with user ownership, name bounds, timestamps, and per-user workspace name uniqueness."
     },
     {
       "kind": "route_contract_changed",
       "target_id": "route.next.desktop_workspaces",
-      "summary": "Adds /api/desktop/workspaces for authenticated desktop session GET, POST, and PATCH workspace sync."
+      "summary": "Adds /api/desktop/workspaces for authenticated desktop session GET and POST workspace sync with JSON error responses for load and create failures."
     },
     {
       "kind": "consumer_behavior_changed",
       "target_id": "rust-diffforge.workspace_bootstrap",
-      "summary": "The desktop app fetches workspaces from the protected API and prompts for the first workspace when none exist."
+      "summary": "The desktop app fetches workspaces from the protected API and prompts for the first workspace when none exist, then renders a blank workspace surface."
+    },
+    {
+      "kind": "consumer_behavior_changed",
+      "target_id": "rust-diffforge.api_error_handling",
+      "summary": "The desktop app reports non-JSON API failures with the HTTP status instead of surfacing a JSON parser error."
     },
     {
       "kind": "producer_behavior_changed",
-      "target_id": "rust-diffforge.forge_panes",
-      "summary": "The desktop dashboard replaces the text-based Forge Console with terminal-like panes opened from top hotkeys, automatically reflowed on the 8-slot board, and saved after the layout settles."
-    },
-    {
-      "kind": "contract_shape_changed",
-      "target_id": "route.next.desktop_workspaces.terminal_layout",
-      "summary": "The desktop workspace terminal_layout contract accepts any non-overlapping pane rectangle that fits inside the 4 by 2 board and may persist a bounded model id for provider terminal restart."
+      "target_id": "rust-diffforge.blank_workspace",
+      "summary": "The desktop dashboard renders a blank workspace surface after workspace load."
     }
   ],
   "affected_tables": [
@@ -45,31 +45,26 @@
   "affected_columns": [
     "public.workspaces.user_id",
     "public.workspaces.name",
-    "public.workspaces.terminal_count",
-    "public.workspaces.terminal_layout",
     "public.workspaces.created_at",
     "public.workspaces.updated_at"
   ],
   "security_data_rules": [
     "Workspace API requests from rust-diffforge must include a valid desktop session bearer token.",
     "The API must scope all workspace reads and writes to the authenticated desktop session user_id.",
+    "Workspace API failures must return JSON error payloads and must not expose database connection details.",
     "Workspace names must be bounded, trimmed, and non-empty before insert.",
-    "terminal_count must be constrained to 1 through 8 before insert.",
-    "terminal_layout must be constrained to non-overlapping pane metadata on a 4-column by 2-row board.",
-    "terminal_layout pane rectangles may use any width from 1 through 4 and any height from 1 through 2 as long as every pane remains inside the board and total occupied cells do not overlap.",
-    "terminal_layout model ids must be optional, bounded strings and must not be treated as executable command text.",
     "The desktop app must not show hard-coded placeholder workspaces once workspace sync is available."
   ],
   "compatibility": {
     "breaking_change": false,
     "requires_app_deploy_order": true,
     "safe_deploy_order": [
-      "Apply SQL migration for workspaces.",
-      "Deploy next-diffforge desktop workspaces API.",
-      "Ship rust-diffforge workspace sync and pane UI."
+      "Apply the workspaces migration.",
+      "Deploy the next-diffforge desktop workspaces API.",
+      "Ship the rust-diffforge blank workspace sync."
     ],
     "backward_compatible": true,
-    "notes": "Existing desktop auth remains compatible. New desktop builds need the workspace endpoint to create and fetch persisted workspaces."
+    "notes": "Existing desktop auth remains compatible."
   },
   "tests": [
     {
@@ -84,7 +79,7 @@
     {
       "command": "npm run build:web",
       "working_directory": "rust-diffforge",
-      "summary": "Validate desktop workspace and pane UI."
+      "summary": "Validate desktop workspace UI."
     },
     {
       "command": "cargo check",

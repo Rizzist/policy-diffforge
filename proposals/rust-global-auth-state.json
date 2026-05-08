@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.global_auth_state",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Move rust-diffforge desktop auth into a shared client state store so every view can react consistently when the session changes or expires.",
+  "scope": "multi_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.auth_state_store",
+      "summary": "Introduce a module-level desktop auth store with subscriber notifications, persisted session access, pending login state access, and cross-window storage synchronization."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.auth_transitions",
+      "summary": "Route startup restore, browser login, callback exchange, plan refresh, logout, and token expiration through shared auth actions instead of component-local auth state."
+    },
+    {
+      "kind": "consumer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_api_auth",
+      "summary": "Workspace API consumers read the current token from the shared auth store and expire the global session when protected API calls report an invalid desktop session."
+    },
+    {
+      "kind": "condition_added",
+      "target_id": "flow.rust.desktop_auth.global_access",
+      "summary": "Any React view can subscribe to the current desktop auth snapshot and receive updates when login, logout, restore, refresh, or expiration changes the session."
+    }
+  ],
+  "rules": [
+    "The shared auth store remains client-only and stores only the desktop session token, pending login state, and display user snapshot already allowed by the accepted desktop auth contract.",
+    "Saved desktop session tokens are still server-validated before authenticated UI is shown.",
+    "Logout and expiration clear persisted auth data before updating subscribed UI.",
+    "Workspace actions must not keep using stale tokens after the shared session is cleared or expired.",
+    "No server route, token shape, or database contract changes are introduced."
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "This only centralizes rust-diffforge client auth state and keeps the existing /api/desktop/* contracts."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri host commands."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-07"
+}
