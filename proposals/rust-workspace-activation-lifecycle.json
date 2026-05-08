@@ -1,0 +1,72 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.workspace_activation_lifecycle",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Separate workspace selection from terminal activation so terminals stay alive across dashboard tabs and only close when a workspace is explicitly deactivated or the app closes.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.app_shell.workspace_selection",
+      "summary": "Clicking a workspace selects and activates it, while the active terminal runtime is tracked independently from the selected workspace view state."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.app_shell.tab_navigation",
+      "summary": "Switching to Files, Vault, Audio, MCPs, or Settings hides the terminal surface instead of unmounting it, preventing tab navigation from closing terminal processes."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.app_shell.workspace_settings",
+      "summary": "Workspace settings expose activate/deactivate controls plus a persisted auto-activate workspace choice, including no default workspace."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.terminal_process_lifecycle",
+      "summary": "Terminal cleanup remains tied to terminal close, explicit workspace deactivation, and app shutdown; auth, billing, hosted API, and database contracts are unchanged."
+    }
+  ],
+  "rules": [
+    "Workspace terminals must remain mounted and running when navigating between dashboard tabs.",
+    "A workspace is activated when its terminal runtime is active; closed workspaces keep their directory label but do not light the activation bar.",
+    "Deactivating a workspace must close and clean up its terminal panes by unmounting that workspace's terminal runtime.",
+    "A user may persist an auto-activate workspace or choose no default workspace; no default should open the app without automatically starting terminals.",
+    "Creating the first workspace should make it the default auto-activate workspace.",
+    "The terminal runtime lifecycle must not alter auth checks, billing gates, desktop session behavior, hosted API contracts, or database behavior."
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/AppShell.jsx",
+      "summary": "Track activated workspace state, persist auto-activate workspace preference, render a persistent terminal layer, and add activate/deactivate controls."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Add selected/activating/activated workspace rail styling and workspace view stack styles that hide inactive tabs without unmounting the terminal runtime."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "Local desktop UI/runtime behavior only; no API, auth, billing, or SQL contract changes."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React shell changes."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

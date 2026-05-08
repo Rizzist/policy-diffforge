@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_telemetry_disabled",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Temporarily disable rust-diffforge terminal telemetry JSONL file writes behind a native boolean toggle.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_telemetry_writer",
+      "summary": "Terminal startup, close, app-close, and frontend telemetry events remain callable but no longer create or append to the local terminal telemetry JSONL file while the toggle is false."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.terminal_contracts",
+      "summary": "Tauri command names, terminal pane lifecycle behavior, auth, billing, hosted API, and database contracts are unchanged."
+    }
+  ],
+  "rules": [
+    "Terminal telemetry file writes must be disabled by default for now.",
+    "A single native boolean must be available to re-enable the existing telemetry writer later.",
+    "Disabling telemetry must not change terminal startup, resize, write, close, close-all, or app-close cleanup behavior.",
+    "No database schema, migration, SQL policy, auth, billing, or hosted API behavior changes are introduced."
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add the native terminal telemetry logging enable/disable boolean."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminals.rs",
+      "summary": "Make the shared terminal telemetry writer return before creating directories or opening the JSONL file when logging is disabled."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "The change is local to rust-diffforge diagnostics storage. Existing commands continue to return success without writing telemetry while disabled."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate the Rust Tauri host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

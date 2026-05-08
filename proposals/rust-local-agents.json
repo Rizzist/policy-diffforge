@@ -28,6 +28,11 @@
       "summary": "DiffForge does not store provider secrets; users authenticate with official local CLIs and the app detects local credential state."
     },
     {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.agent_settings_layout",
+      "summary": "The desktop settings provider cards and following workspace/account panels must stack without overlap at compact desktop heights."
+    },
+    {
       "kind": "no_policy_change",
       "target_id": "rust-diffforge.desktop_auth_contract",
       "summary": "DiffForge web login, desktop sessions, billing checks, and backend auth APIs are unchanged by local agent settings."
@@ -67,5 +72,5 @@
   ],
   "created_by": "ai",
   "created_at": "2026-05-06",
-  "updated_at": "2026-05-07"
+  "updated_at": "2026-05-08"
 }

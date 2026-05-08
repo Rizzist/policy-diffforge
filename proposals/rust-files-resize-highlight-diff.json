@@ -10,7 +10,7 @@
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.files_view",
-      "summary": "The Files explorer and preview panes are separated by a draggable VS Code-like resize handle with requestAnimationFrame-batched layout persistence, allowing the explorer to expand into the dominant pane while keeping a bounded preview."
+      "summary": "The Files explorer and preview panes are separated by a draggable VS Code-like resize handle with percent-based panel constraints and layout persistence, allowing the explorer to expand into the dominant pane while keeping a bounded preview."
     },
     {
       "kind": "producer_behavior_changed",
@@ -51,8 +51,8 @@
     },
     {
       "op": "replace",
-      "path": "rust-diffforge/src/App.jsx",
-      "summary": "Render resizable Files panes, syntax-highlighted previews, and modified-file diff panels."
+      "path": "rust-diffforge/src/files/FilesWorkspaceView.jsx",
+      "summary": "Render resizable Files panes with explicit percentage constraints, syntax-highlighted previews, and modified-file diff panels."
     },
     {
       "op": "replace",

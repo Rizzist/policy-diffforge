@@ -14,6 +14,11 @@
     },
     {
       "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_prewarm_directory",
+      "summary": "Prewarmed shell-only PTYs immediately switch to the resolved workspace root directory during terminal_open, while Codex or Claude Code launch still waits for the startup readiness gate."
+    },
+    {
+      "kind": "function_logic_changed",
       "target_id": "rust-diffforge.workspace_terminal_agent_launch",
       "summary": "WorkspaceTerminal can defer agent CLI initialization until the startup gate is complete, then issue one backend batch command that starts the selected agent in all prepared PTYs before the workspace reveal."
     },
@@ -51,8 +56,13 @@
     },
     {
       "op": "replace",
-      "path": "rust-diffforge/src-tauri/src/lib.rs",
-      "summary": "Support shell-only terminal_open requests, add terminal_start_agent for launching an agent inside the prewarmed PTY, and log single-pane terminal_close outcomes."
+      "path": "rust-diffforge/src-tauri/src/terminals.rs",
+      "summary": "Support shell-only terminal_open requests, switch prewarmed shells into the resolved workspace directory before agent launch, add terminal_start_agent for launching an agent inside the prewarmed PTY, and log single-pane terminal_close outcomes."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminal_cli.rs",
+      "summary": "Add shared shell input generation for setting a terminal working directory before gated agent launch."
     }
   ],
   "compatibility": {
@@ -79,5 +89,6 @@
     }
   ],
   "created_by": "ai",
-  "created_at": "2026-05-08"
+  "created_at": "2026-05-08",
+  "updated_at": "2026-05-08"
 }

@@ -23,6 +23,11 @@
       "summary": "The MCPs rail item opens a non-functional placeholder surface without claiming MCP server management behavior exists."
     },
     {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.mcps_placeholder_stability",
+      "summary": "The MCPs placeholder must render without local registry state or undefined app-level dependencies so selecting the tab cannot blank the workspace."
+    },
+    {
       "kind": "no_policy_change",
       "target_id": "policy-diffforge.sql",
       "summary": "No database schema, migration, SQL policy, or data access change is required."
@@ -54,5 +59,6 @@
     }
   ],
   "created_by": "ai",
-  "created_at": "2026-05-07"
+  "created_at": "2026-05-07",
+  "updated_at": "2026-05-08"
 }
