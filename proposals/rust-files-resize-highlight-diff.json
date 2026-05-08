@@ -15,7 +15,12 @@
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.file_preview",
-      "summary": "Text file previews use language-aware syntax coloring for common workspace file types."
+      "summary": "Text file previews use stronger language-aware syntax coloring for common workspace file types."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.file_preview_modes",
+      "summary": "The selected file preview has a non-persistent File, Review, and Diff mode switch; modified files can show file content only, full-file inline review with diff rows and a visible-height draggable right-side change ruler, or diff only in one main scroll surface."
     },
     {
       "kind": "function_logic_changed",
@@ -52,7 +57,12 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src/files/FilesWorkspaceView.jsx",
-      "summary": "Render resizable Files panes with explicit percentage constraints, syntax-highlighted previews, and modified-file diff panels."
+      "summary": "Render resizable Files panes with explicit percentage constraints, syntax-highlighted previews, and non-persistent File/Review/Diff modes including inline full-file review rows."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Style the file preview mode switch, single-scroll diff/review surfaces, and stronger Prism token colors."
     },
     {
       "op": "replace",

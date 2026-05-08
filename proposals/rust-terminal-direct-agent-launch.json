@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_direct_agent_launch",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Launch workspace agent terminals with a configured PTY command and working directory instead of typing Set-Location and agent commands into an already-running shell.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_agent_launch",
+      "summary": "Direct agent terminal_open requests spawn a PTY process with the resolved workspace directory set as the process cwd and the agent command configured at process creation time."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_windows_launch",
+      "summary": "Windows agent launches use PowerShell NoLogo/NoExit with a configured command argument so PowerShell does not visibly echo Set-Location or codex.cmd startup input."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_startup",
+      "summary": "Workspace startup no longer prewarms visible agent panes behind the startup gate; terminals open through the direct configured launch path once a ready agent is selected."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.auth_billing_contract",
+      "summary": "Authenticated paid gating, local terminal input, resize, close, and hosted API contracts are unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminal_cli.rs",
+      "summary": "Add configured PTY command builders for direct agent launch and cwd-aware shell creation."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Disable background idle shell pool warming now that visible agent panes use direct configured PTY process launch."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminals.rs",
+      "summary": "Use configured PTY process spawning for direct agent opens and keep shell input writing only for explicit deferred shell launches."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/AppShell.jsx",
+      "summary": "Stop mounting startup prewarm agent panes so startup terminals use the direct launch path after readiness completes."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to native desktop terminal startup and does not alter auth, billing, workspace persistence, SQL, or hosted API contracts."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React shell change."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Rust terminal launch changes."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

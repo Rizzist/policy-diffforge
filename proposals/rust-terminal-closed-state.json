@@ -3,14 +3,14 @@
   "id": "proposal.rust.terminal_closed_state",
   "kind": "proposal",
   "status": "pending",
-  "summary": "Show a clear closed-state message when the final rust-diffforge workspace terminal is closed and remains mounted.",
+  "summary": "Show clear closing and closed-state messages for rust-diffforge workspace terminal panes.",
   "scope": "single_project",
   "project_id": "rust-diffforge",
   "review_items": [
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.workspace_terminal_close",
-      "summary": "Closing the final workspace terminal continues to keep one bounded terminal pane mounted, but the closed pane now displays visible Terminal Closed status text instead of an empty surface."
+      "summary": "Pressing a workspace terminal close pill immediately puts that pane into a visible closing state, disables its pill controls, blocks repeated clicks through an overlay, and then shows Terminal Closed for the final mounted pane after native terminal shutdown completes."
     },
     {
       "kind": "no_policy_change",
@@ -21,8 +21,13 @@
   "patches": [
     {
       "op": "replace",
-      "path": "rust-diffforge/src/App.jsx",
-      "summary": "Render and style visible status copy in the terminal closed surface."
+      "path": "rust-diffforge/src/terminals/WorkspaceTerminal.jsx",
+      "summary": "Track terminal close-in-flight state, disable terminal pill controls while terminal_close awaits native shutdown, and render the closing overlay before the pane closes."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Style the terminal closing overlay and keep disabled pill controls visibly inactive."
     }
   ],
   "compatibility": {
