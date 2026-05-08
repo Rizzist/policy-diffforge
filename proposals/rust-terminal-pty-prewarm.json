@@ -25,7 +25,7 @@
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.terminal_resize_diagnostics",
-      "summary": "Frontend and native resize handling includes client sequence and queue timing fields, native resize batches skip stale out-of-order sequences, and workspace terminals avoid forced post-resize WebGL refreshes that can clear the canvas after text is already visible."
+      "summary": "Frontend and native resize handling includes client sequence and queue timing fields, native resize batches skip stale out-of-order sequences, workspace terminals default to the stable DOM renderer, and release/idle probes capture paint state, DOM row visibility, topmost elements, xterm render events, and layout dimensions to diagnose remaining black flashes."
     },
     {
       "kind": "function_logic_changed",
@@ -47,7 +47,7 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src/App.jsx",
-      "summary": "Mount the authenticated dashboard behind the startup overlay, add terminal prewarm/deferred agent launch props, explicitly close removed terminal panes, and avoid forced post-resize WebGL repaints."
+      "summary": "Mount the authenticated dashboard behind the startup overlay, add terminal prewarm/deferred agent launch props, explicitly close removed terminal panes, keep workspace terminals on the DOM renderer during resize, and add resize release/idle paint diagnostics."
     },
     {
       "op": "replace",
