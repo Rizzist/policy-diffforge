@@ -1,0 +1,90 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_backend_first_resize",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Replace rust-diffforge terminal resize behavior with a backend-first xterm render-metrics controller that avoids fit-addon sizing, black flashes, grid jitter, and PTY dimension mismatch.",
+  "scope": "multi_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_resize_controller",
+      "summary": "Terminal panes use a reusable JavaScript resize controller driven by ResizeObserver, a 16 ms debounce, xterm render-service cell metrics, floor grid math, duplicate-size suppression, and overlapping async resize protection. The resolver prefers actualCellWidth/actualCellHeight and falls back to css.cell width/height when the installed xterm render-service shape does not expose actual metrics."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_resize_order",
+      "summary": "Resize handling awaits the native PTY resize command before calling xterm resize, then clears the WebGL texture atlas when the WebGL addon exposes clearTextureAtlas."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_startup_grid",
+      "summary": "Terminal startup waits a bounded time after terminal.open(container) for valid xterm render-service metrics, sizes xterm to that measured grid before any PTY output can be written, and opens the PTY with the measured columns and rows instead of falling back to 80x24."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_resize_write_barrier",
+      "summary": "PTY output chunks received while a backend-first resize is in flight are buffered on the frontend and flushed only after the native resize has completed and xterm has accepted the matching grid."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_pane_minimums",
+      "summary": "Resizable terminal rows and columns enforce minimum panel sizes aligned with the terminal minimum grid so user drags cannot collapse panes below usable terminal dimensions."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.resize_terminal_command",
+      "summary": "The Tauri host exposes resize_terminal, validates bounded u16 columns and rows, safely locks the selected portable-pty master handle, and applies PtySize with zero pixel dimensions."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_background",
+      "summary": "The terminal container, xterm viewport, and xterm screen share the exact terminal theme background so resizing does not reveal mismatched black edge gaps."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_contract",
+      "summary": "Desktop auth, billing, workspace API, database contracts, terminal launch allowlists, and terminal input safeguards are unchanged."
+    }
+  ],
+  "rules": [
+    "Terminal resize logic must not use xterm-addon-fit or FitAddon.",
+    "Terminal grid size must prefer term._core._renderService.dimensions.actualCellWidth and actualCellHeight, and may fall back to the same render service's css.cell.width and css.cell.height when actual metrics are absent.",
+    "Columns and rows must use Math.floor(container size divided by actual cell size) and then be clamped to the existing terminal bounds.",
+    "Terminal startup must not open the PTY with fallback 80x24 dimensions when render metrics are missing; it must wait a bounded time for valid metrics and fail before PTY open if metrics never become valid.",
+    "ResizeObserver callbacks must be debounced by 16 ms and cleaned up with timers on unmount.",
+    "The Rust PTY backend must be resized and awaited before xterm resize is called for the same columns and rows.",
+    "PTY output writes must be buffered while a resize command is awaiting backend completion and flushed after xterm has been resized to the accepted grid.",
+    "Workspace terminal resize panes must enforce row and column minimums so terminal containers do not collapse below the configured minimum columns and rows.",
+    "Duplicate columns and rows must be ignored, and overlapping async resize calls must serialize to the latest observed size.",
+    "WebGL texture atlas clearing after xterm resize is best-effort and must not break DOM renderer fallback.",
+    "Terminal input, close, launch, auth, billing, and database behavior remain unchanged."
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "This is a local desktop terminal rendering and PTY sizing change. Existing terminal pane identifiers are still used so multi-pane sessions resize the selected PTY."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle without xterm-addon-fit imports."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate the resize_terminal Tauri command and portable-pty resize path."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

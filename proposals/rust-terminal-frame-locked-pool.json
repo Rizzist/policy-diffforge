@@ -1,0 +1,91 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_frame_locked_pool",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Replace hot-path terminal spawning and JSON output events with a warm PTY pool and frame-locked binary output channel.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_pty_pool",
+      "summary": "Maintain a small background pool of shell-backed warm PTYs so terminal_open can hand off an existing PTY before refilling the pool."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_output_bridge",
+      "summary": "Send terminal output through a Tauri binary Channel as raw byte buffers instead of serializing PTY output as UTF-8 JSON event payloads."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_frame_batching",
+      "summary": "Batch PTY reader output and flush it on a 16.667 ms tokio interval to reduce event storms during high-output commands."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_spawn_fast_path",
+      "summary": "Remove frontend terminal open pacing from the normal startup path so warm PTY handoff is not delayed by artificial spawn gaps."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.terminal_resize_contract",
+      "summary": "Terminal resize behavior, resize scheduling, resize command names, and resize validation are intentionally left unchanged because resizing is being handled separately."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add a PtyPool, shell-backed warm PTY handoff, binary channel output, and 60 Hz output batching while preserving terminal validation and close cleanup."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Open terminal output channels with Tauri Channel, write Uint8Array chunks into xterm, and bypass the old frontend spawn-gap queue."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/Cargo.toml",
+      "summary": "Enable tokio time support for frame-locked output batching."
+    }
+  ],
+  "rules": [
+    "Terminal pane ids, instance id stale checks, PTY size validation, input size bounds, and close-all cleanup remain enforced.",
+    "Terminal output must not be converted to UTF-8 strings or emitted as JSON payloads on the normal frontend path.",
+    "PTY reader output must be accumulated and flushed on a 16.667 ms tokio interval so large output does not create an IPC event per read.",
+    "The warm PTY pool may fall back to synchronous creation if exhausted, but each handoff must trigger a background refill.",
+    "Resize logic is out of scope for this change and must remain compatible with the existing terminal_resize and terminal_resize_many commands.",
+    "No auth, billing, workspace API, database, or cross-project contract changes are introduced."
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop terminal bridge. Existing command names remain, with terminal_open gaining a binary output channel argument used by the local frontend."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri terminal host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

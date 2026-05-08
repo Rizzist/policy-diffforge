@@ -90,12 +90,12 @@
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.workspace_terminal_exact_resize",
-      "summary": "xterm pane resize now computes one proposed columns/rows pair, applies it to the renderer, and sends that same exact pair to the Tauri PTY resize command."
+      "summary": "xterm pane resize now computes columns/rows from actual xterm render cell metrics and sends that exact pair to the native resize_terminal command before applying it to the xterm renderer."
     },
     {
       "kind": "function_logic_changed",
-      "target_id": "rust-diffforge.workspace_terminal_resize_many",
-      "summary": "Terminal resize requests are coordinated through a workspace-level resize scheduler and a native terminal_resize_many command that applies exact deduplicated sizes for multiple panes in one invoke."
+      "target_id": "rust-diffforge.workspace_terminal_resize_controller",
+      "summary": "Terminal resize requests are handled per pane through a reusable ResizeObserver controller with 16 ms debounce, duplicate-size suppression, and overlapping async resize protection instead of a workspace-level batch."
     },
     {
       "kind": "producer_behavior_changed",
@@ -160,9 +160,9 @@
     "Multiple terminals must render through react-resizable-panels and keep each xterm container resize-observed so terminal fit/resize events continue to reach Tauri.",
     "The terminal map must be stored as Arc<RwLock<HashMap<String, TerminalInstance>>> with per-instance locks around non-Sync PTY handles so unrelated panes are not serialized behind one global mutex.",
     "Terminal close and replacement must remove the instance from the active map before process cleanup, then kill and poll the child outside the map lock so stale PTY processes do not accumulate.",
-    "Terminal resize must apply the same validated columns/rows to xterm and to the native PTY; the Rust host may reject out-of-range sizes but must not silently clamp valid frontend sizes.",
+    "Terminal resize must await the native PTY resize_terminal command for the same validated columns/rows before applying those columns/rows to xterm.",
     "Terminal output may use the existing Tauri event bridge; every output and exit event must include pane_id and instance_id so stale events cannot write into replacement panes.",
-    "Native resize calls for multi-pane layouts must be batched through terminal_resize_many and deduplicated by pane id and instance id.",
+    "Native resize calls for multi-pane layouts must target the pane id and instance id for the observed terminal pane and must not use a workspace-level resize batch.",
     "Development metrics must be visible in the terminal workspace and terminal startup/resize steps must also be written as JSONL to the local ignored rust-diffforge/logs folder.",
     "The xterm WebGL addon must be best-effort for each terminal pane: terminal panes continue to open with xterm's default renderer if WebGL2 is unavailable or the WebGL context is lost.",
     "Empty, missing, or stale saved workspace root settings must not let Windows system startup folders such as C:\\Windows, C:\\Windows\\System32, or C:\\Windows\\SysWOW64 become the agent working directory.",
@@ -195,7 +195,7 @@
     {
       "command": "npm run build:web",
       "working_directory": "diffforge/rust-diffforge",
-      "summary": "Validate the React WebView bundle and xterm fit/webgl imports."
+      "summary": "Validate the React WebView bundle and xterm metrics/WebGL imports."
     },
     {
       "command": "npm run build",
