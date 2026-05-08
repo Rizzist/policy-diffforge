@@ -23,6 +23,11 @@
       "summary": "The blank workspace surface becomes a live xterm terminal pane with provider status, command metadata, retry/recheck actions, restart control, and visible PTY output."
     },
     {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_identity",
+      "summary": "Each terminal top pill shows a compact three-character color-coded provider and terminal-slot identity badge so multiple Codex or Claude Code panes can be distinguished at a glance."
+    },
+    {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.workspace_terminal_restart",
       "summary": "The workspace terminal can be restarted from an overlaid top-center pill, closing the current PTY session and opening a fresh one for the same workspace/provider/root."
@@ -178,6 +183,7 @@
     "Terminal restart must reuse the fixed terminal command bridge and close the existing pane before opening a replacement PTY session.",
     "Terminal spawn and restart requests from multi-pane workspace layouts must pass through a sequential open queue to avoid starting all PTYs at once.",
     "Ctrl+C should not be forwarded to workspace agent terminals; users must use the explicit close or restart controls to end the pane.",
+    "Each visible terminal pane should expose a stable three-character identity badge in the top pill, using the local provider and terminal index only, without changing pane ids, process lifecycle, telemetry identity, or backend contracts.",
     "The terminal top pill should expose icon-only restart and close controls without a visible title or running state text; when the final bounded pane is closed and remains mounted, the pane should show a visible closed-state message.",
     "The terminal close control must call the existing terminal_close command immediately, remain visually muted compared with restart, and terminate the active shell-wrapped Codex or Claude Code process tree before the pane is marked closed.",
     "Agent terminals should launch through an interactive shell wrapper so Ctrl+C or agent process exit leaves the pane usable instead of orphaning xterm with no child process.",

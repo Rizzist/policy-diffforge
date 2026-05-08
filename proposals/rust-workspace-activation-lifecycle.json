@@ -14,6 +14,11 @@
     },
     {
       "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.app_shell.workspace_click_terminal_focus",
+      "summary": "Clicking a workspace from any non-terminal dashboard tab switches the visible workspace surface back to Terminals for the selected and activated workspace."
+    },
+    {
+      "kind": "function_logic_changed",
       "target_id": "rust-diffforge.app_shell.tab_navigation",
       "summary": "Switching to Files, Vault, Audio, MCPs, or Settings hides the terminal surface instead of unmounting it, preventing tab navigation from closing terminal processes."
     },
@@ -30,6 +35,7 @@
   ],
   "rules": [
     "Workspace terminals must remain mounted and running when navigating between dashboard tabs.",
+    "Clicking a workspace in the rail must focus the Terminals tab for that workspace when another dashboard tab is currently visible.",
     "A workspace is activated when its terminal runtime is active; closed workspaces keep their directory label but do not light the activation bar.",
     "Deactivating a workspace must close and clean up its terminal panes by unmounting that workspace's terminal runtime.",
     "A user may persist an auto-activate workspace or choose no default workspace; no default should open the app without automatically starting terminals.",

@@ -1,0 +1,247 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.coordination_kernel_mcp",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add a local-first Coordination Kernel MCP to rust-diffforge so app-launched coding agents work in isolated git worktrees, use SQLite-backed leases/tasks/events, and pass patch/merge gates before changes return to the shared repo root.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.coordination_kernel",
+      "summary": "The desktop app creates a local .agents/kernel.sqlite authority with tasks, sessions, leases, worktrees, violations, patches, merge jobs, memories, SQL policy, and orchestration metadata."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.agent_terminal_launch",
+      "summary": "Write-enabled app-launched coding-agent terminals are assigned per-session git worktrees by default instead of using the shared repo root as their write workspace."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.patch_gate",
+      "summary": "Patch submission validates active session ownership, worktree ownership, changed file discovery, path containment, lease coverage, open workspace violations, and diff artifact integrity before a patch can be submitted."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.merge_gate",
+      "summary": "Merge requests and applies are handled by the local kernel using stored diff artifacts, clean-target checks, git apply checks, and successful patch validation."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.coordination_mcp",
+      "summary": "A local stdio JSON-RPC MCP-compatible server exposes coordination tools for briefs, claims, leases, patch validation, merge requests, memory, SQL policy, and local orchestration."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_coordination_mcp",
+      "summary": "Each authenticated app workspace gets an always-on local Coordination Kernel MCP profile keyed by the server-backed application workspace UUID as the objective key; missing workspace UUID is treated as an error, not a local fallback."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.agent_terminal_coordination_silent_launch",
+      "summary": "Normal app-launched agent terminals keep the Coordination Kernel MCP environment and isolated worktree context attached, but do not print the coordination startup banner into the PTY output."
+    },
+    {
+      "kind": "consumer_behavior_changed",
+      "target_id": "rust-diffforge.mcps_tab",
+      "summary": "The MCPs tab lists the Coordination Kernel as the built-in workspace-scoped MCP, shows it as auto-on, and does not expose an off toggle in this implementation."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.coordination_sqlite_startup",
+      "summary": "SQLite open, WAL setup, and schema migration now retry transient database busy/locked states so Vault refreshes, terminal launch, and MCP startup can overlap without failing agent preparation."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.coordination_mcp_stdio",
+      "summary": "The local MCP server supports both newline JSON-RPC and Content-Length framed stdio messages, ignores initialization notifications, and keeps the transport open for Codex/Claude-style MCP clients."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.dev_command",
+      "summary": "The Tauri host remains the Cargo default-run binary so npm run dev and plain cargo run continue launching rust-diffforge even after adding the coordination_mcp binary."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_coordination_lifecycle",
+      "summary": "Agent terminal open/start/close/close-all are lifecycle-serialized; cleanup, reader exit, spawn failure, and kernel recovery interrupt no-longer-valid coordination sessions, expire active leases, and mark associated worktree records interrupted so stale unsafe sessions do not remain authoritative."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_restart_recovery",
+      "summary": "Terminal restart recovery interrupts duplicate active sessions for the same pane/pty id and cleanup handles any displaced native PTY instance if a defensive map insert replacement still occurs."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.coordination_event_log",
+      "summary": "Append-only coordination events allocate sequence numbers inside the insert statement and retry transient lock or sequence collisions so parallel agent launches do not degrade sessions because of event-log races."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.coordination_ui",
+      "summary": "The authenticated desktop shell adds a compact Coordination panel for tasks, sessions, worktrees, leases, violations, patches, merge jobs, memory, SQL classification, and cloud orchestrator status."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.vault_coordination_debugger",
+      "summary": "The Vault tab becomes a local coordination debugger that visualizes kernel alignment, agent worktree/MCP activation, patch/merge readiness, violations, cloud disabled state, recent events, and local alignment log status."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.coordination_alignment_logger",
+      "summary": "The kernel can generate a local alignment report and append JSONL records under logs/ when sessions, policies, MCP activation files, violations, patches, merges, SQL policy, or cloud settings drift from the optimized coordination proposal."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.sql_mcp_policy",
+      "summary": "SQL MCP behavior defaults to off; SQL classification and migration proposal storage are local only and do not execute staging or production SQL."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.cloud_orchestrator_stub",
+      "summary": "Cloud orchestrator tables, redacted context export artifacts, mock-plan import/adoption, and status UI are added while the cloud adapter defaults to disabled/local-only and makes no network calls."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No shared CockroachDB schema, migration, credentials, or production data access changes are made by this local desktop coordination store."
+    }
+  ],
+  "rules": [
+    "SQLite rows, events, leases, patch validations, merge jobs, and approvals are the coordination authority; memory, markdown, terminal output, and cloud plans are advisory.",
+    "The cloud orchestrator defaults to disabled/local_only and must not make network calls, export raw source code, terminal logs, patches, secrets, env vars, or credentials by default.",
+    "SQL execution remains blocked unless a future sandbox connection is explicitly configured; migration proposals are stored as artifacts and never applied to shared or production databases by this change.",
+    "The app cannot prevent external OS terminals from editing files, but app-launched agents are isolated and unsafe/unleased changes are rejected at patch/merge time.",
+    "Alignment logs are local JSONL diagnostics only; they must not include raw source code, raw terminal logs, secrets, env vars, production credentials, or raw patch contents.",
+    "Alignment logging is controlled by one Rust boolean and may be disabled without weakening the coordination authority or patch/merge gates.",
+    "Coordination startup must tolerate short-lived local SQLite lock contention caused by simultaneous UI refresh, terminal launch, and MCP tool startup, without disabling WAL or weakening the local authority.",
+    "The app workspace UUID from the hosted application database is required as the local objective key, but no production SQL credentials or direct CockroachDB access are exposed to agent shells or MCP config.",
+    "The built-in Coordination Kernel MCP is always-on per workspace for now and cannot be disabled from the MCPs tab; disabling it would require a future explicit policy change.",
+    "Normal workspace terminals must keep coordination env/MCP setup active while keeping PTY output clean; human-readable coordination guidance belongs in Coordination, Vault, MCP, or diagnostic UI surfaces instead of automatic terminal startup text.",
+    "Active coordination sessions must follow terminal lifecycle state; stale, duplicate pane, or unsafe coordination_only sessions in git repositories are interrupted and cannot continue as authoritative write-enabled sessions.",
+    "Terminal open/start/close/close-all operations are serialized through the native lifecycle lock so concurrent restarts cannot overwrite live terminal instances without cleanup.",
+    "Deferred prepared-shell agent starts are blocked unless the terminal already has a coordination session, preventing prewarm paths from bypassing worktree/MCP activation if re-enabled later.",
+    "Terminal open results and telemetry must report the actual process working directory so coordinated agents visibly point at the assigned worktree rather than the shared repo root.",
+    "Interrupted coordination sessions mark their active worktree records interrupted while leaving the git worktree files on disk for review or future explicit cleanup.",
+    "Append-only event logging must remain safe under parallel terminal launch contention and must not cause a successfully created worktree to be reported as an unsafe coordination_only session."
+  ],
+  "patches": [
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/coordination/",
+      "summary": "Add local coordination kernel modules for SQLite schema, kernel operations, resources, worktrees, patch validation, merge gate, memory, SQL policy, cloud orchestration stubs, MCP, watcher hooks, and Tauri commands."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/bin/coordination_mcp.rs",
+      "summary": "Add a stdio MCP-compatible JSON-RPC binary for coding agents to call local coordination tools."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Register coordination commands, route app-launched agent terminals through worktree-first coordination setup, retain per-terminal coordination session metadata for lifecycle cleanup, and add a native terminal lifecycle lock."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminal_cli.rs",
+      "summary": "Inject coordination environment variables into app-launched agent PTYs."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminals.rs",
+      "summary": "Keep coordination context attached to agent terminals while suppressing the normal PTY startup banner, block unsafe coordination_only and uncoordinated deferred agent starts, serialize terminal lifecycle operations, clean displaced instances defensively, report the actual process cwd, and interrupt sessions on terminal cleanup or spawn failure."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/coordination/CoordinationWorkspaceView.jsx",
+      "summary": "Add the operational coordination panel in plain JS/JSX."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/AppShell.jsx",
+      "summary": "Add Coordination to the workspace rail and mount the coordination panel."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/vault/VaultWorkspaceView.jsx",
+      "summary": "Turn the intentionally blank Vault tab into a compact coordination alignment debugger in plain JS/JSX."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/coordination/alignment.rs",
+      "summary": "Add one-boolean local JSONL alignment logging and report helpers for policy/worktree/MCP/patch/merge/cloud drift."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/coordination/kernel.rs",
+      "summary": "Expose a kernel alignment report that logs reasons for aligned, warning, and violation checks, avoid recovery-event writes on lightweight command opens, recover duplicate or unsafe coordination sessions as interrupted, mark interrupted worktrees, and make event append sequence allocation retry-safe."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/coordination/db.rs",
+      "summary": "Retry transient SQLite busy/locked failures around WAL setup, foreign-key setup, and idempotent schema migrations."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/coordination/mcp.rs",
+      "summary": "Support Content-Length framed stdio in addition to newline JSON-RPC for MCP client compatibility."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/coordination/models.rs",
+      "summary": "Carry workspace UUID and local objective key into agent terminal environment variables and startup banner."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/coordination/tauri_commands.rs",
+      "summary": "Expose coordination_get_alignment_report for the Vault debugger and workspace-scoped coordinator MCP status for the MCPs tab."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/mcps/McpsWorkspaceView.jsx",
+      "summary": "List the built-in Coordination Kernel MCP as workspace-scoped, auto-on, and not user-toggleable."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Add compact coordination panel styles and icons consistent with the native desktop shell."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/Cargo.toml",
+      "summary": "Add local-only Rust dependencies for SQLite, UUIDs, timestamps, error handling, and notification support if compatible, while keeping rust-diffforge as the Cargo default-run binary."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop app. Existing terminal rendering and PTY behavior are preserved while agent cwd/env are coordinated for write-enabled launches."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Rust Tauri host and coordination MCP binary."
+    },
+    {
+      "command": "cargo test",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate coordination schema, leases, patch gate, SQL classifier, memory, and cloud disabled/mock behavior."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React/Vite desktop shell."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}
