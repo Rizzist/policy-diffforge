@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_startup_fast_path",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Reduce rust-diffforge workspace terminal startup latency after agent readiness checks.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_ready_transition",
+      "summary": "After authentication, launch screen completion, and agent readiness checks, the workspace enters ready state immediately instead of waiting for a fixed 450ms initialization timer."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.react_dev_mount_behavior",
+      "summary": "The Tauri React shell renders App directly without React StrictMode so development builds do not double-run terminal mount effects."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.auth_billing_contract",
+      "summary": "Authentication, paid-user gating, workspace sync, agent status checks, and terminal command allowlists remain unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Remove the fixed workspace initialization timer and mark the workspace ready immediately once existing gates clear."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/main.js",
+      "summary": "Render App directly instead of wrapping it in React.StrictMode."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "This changes only local desktop startup timing and development render behavior. Existing auth, billing, workspace API, and terminal spawn contracts are preserved."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

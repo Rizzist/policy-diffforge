@@ -20,7 +20,7 @@
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.audio_widget",
-      "summary": "A separate hidden audio-widget window is created on demand and shown only when the local Whisper model and runtime are available."
+      "summary": "A separate hidden audio-widget window is created on demand, shown without taking focus when the local Whisper model and runtime are available, and automatically arms recording from the global shortcut."
     },
     {
       "kind": "producer_behavior_changed",
@@ -30,7 +30,7 @@
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.focused_text_insertion",
-      "summary": "After transcription the widget hides and the Tauri host attempts to insert the transcript into the currently focused operating-system text target using Windows SendInput, macOS osascript/System Events, or Linux xdotool/wl-copy+wtype/ydotool fallbacks."
+      "summary": "After transcription the widget hides and the Tauri host attempts to insert the transcript into the prior operating-system text target using Windows SendInput, macOS osascript/System Events, or Linux xdotool/wtype/wl-copy/xclip fallbacks."
     },
     {
       "kind": "producer_behavior_changed",

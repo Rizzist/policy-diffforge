@@ -118,6 +118,11 @@
       "summary": "When no usable local root directory is saved, the frontend drops stale Windows system root settings and the native default working-directory resolver falls back to the Tauri project root or user home before launching agent terminals."
     },
     {
+      "kind": "condition_changed",
+      "target_id": "rust-diffforge.workspace_windows_cwd",
+      "summary": "Windows canonical workspace paths must be converted from verbatim drive or UNC syntax before they are returned to the frontend or passed as shell-backed PTY working directories, while macOS and Linux workspace paths pass through unchanged."
+    },
+    {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.forge_prompt_root",
       "summary": "One-shot local agent prompt runs may receive the same optional Tauri-validated workingDirectory value so Codex and Claude Code executions can share the selected project root."
@@ -161,6 +166,7 @@
     "Development metrics must be visible in the terminal workspace and terminal startup/resize steps must also be written as JSONL to the local ignored rust-diffforge/logs folder.",
     "The xterm WebGL addon must be best-effort for each terminal pane: terminal panes continue to open with xterm's default renderer if WebGL2 is unavailable or the WebGL context is lost.",
     "Empty, missing, or stale saved workspace root settings must not let Windows system startup folders such as C:\\Windows, C:\\Windows\\System32, or C:\\Windows\\SysWOW64 become the agent working directory.",
+    "Windows verbatim drive paths such as \\\\?\\C:\\project and verbatim UNC paths must be normalized to shell-friendly paths before being returned to the frontend or used as a PTY working directory; macOS and Linux paths must not be rewritten by this compatibility fix.",
     "Changing a workspace root directory may restart all mounted local agent terminal panes for that workspace so Codex, Claude Code, and future panes use the same selected directory on their next session.",
     "One-shot local agent prompt runs that include workingDirectory must validate it with the same Tauri root-directory resolver used by live terminal launches.",
     "Terminal restart must reuse the fixed terminal command bridge and close the existing pane before opening a replacement PTY session.",
