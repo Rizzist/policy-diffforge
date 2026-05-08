@@ -10,17 +10,27 @@
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.workspace_terminal_prewarm",
-      "summary": "Authenticated paid workspace rendering mounts under the startup overlay so terminal panes can pre-open plain shell PTYs while agent checks or updates are still blocking visible entry."
+      "summary": "Authenticated paid workspace rendering mounts under the startup overlay so terminal panes can pre-create PTY pairs without starting a visible bootstrap shell while agent checks or updates are still blocking visible entry."
     },
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.workspace_terminal_agent_launch",
-      "summary": "WorkspaceTerminal can defer agent CLI initialization until the startup gate is complete, then use a shared launch epoch so all prewarmed panes send the agent start command together."
+      "summary": "WorkspaceTerminal can defer agent CLI initialization until the startup gate is complete, then issue one backend batch command that starts the selected agent in all prepared PTYs before the workspace reveal."
     },
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.tauri_terminal_start_agent",
-      "summary": "The Tauri host exposes a bounded terminal_start_agent command that validates the pane and provider before writing the agent command into the current PTY."
+      "summary": "The Tauri host exposes a bounded terminal_start_agent_many command that validates panes/providers and spawns agent processes into already-prepared PTYs in one batch."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_resize_diagnostics",
+      "summary": "Frontend and native resize handling includes client sequence and queue timing fields, native resize batches skip stale out-of-order sequences, and the terminal renderer performs a debounced settled repaint after resize to prevent black WebGL flashes."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_count_close",
+      "summary": "When workspace terminal settings remove pane indexes, the frontend explicitly closes the corresponding native terminal sessions instead of relying only on React unmount cleanup, and native single-pane close requests log start/done/error telemetry."
     },
     {
       "kind": "no_policy_change",
@@ -37,12 +47,12 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src/App.jsx",
-      "summary": "Mount the authenticated dashboard behind the startup overlay and add terminal prewarm/deferred agent launch props."
+      "summary": "Mount the authenticated dashboard behind the startup overlay, add terminal prewarm/deferred agent launch props, explicitly close removed terminal panes, and refresh the renderer after settled resizes."
     },
     {
       "op": "replace",
       "path": "rust-diffforge/src-tauri/src/lib.rs",
-      "summary": "Support shell-only terminal_open requests and add terminal_start_agent for launching an agent inside the prewarmed PTY."
+      "summary": "Support shell-only terminal_open requests, add terminal_start_agent for launching an agent inside the prewarmed PTY, and log single-pane terminal_close outcomes."
     }
   ],
   "compatibility": {
