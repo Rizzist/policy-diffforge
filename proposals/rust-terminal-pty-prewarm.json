@@ -15,7 +15,7 @@
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.workspace_terminal_agent_launch",
-      "summary": "WorkspaceTerminal can defer agent CLI initialization until the startup gate is complete, using the already-open PTY instead of spawning the full agent process during readiness checks."
+      "summary": "WorkspaceTerminal can defer agent CLI initialization until the startup gate is complete, then use a shared launch epoch so all prewarmed panes send the agent start command together."
     },
     {
       "kind": "function_logic_changed",
