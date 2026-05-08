@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.terminal_render_stability",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Keep workspace terminals visually stable when resizing from one pane to many panes.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_renderer",
+      "summary": "WorkspaceTerminal defaults to xterm's stable canvas renderer instead of attaching the WebGL addon, preventing glyph atlas corruption when several terminal panes are created and resized at once."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.terminal_process_lifecycle",
+      "summary": "Terminal process startup, resize commands, close commands, auth, billing, workspace API, and database contracts are unchanged."
+    }
+  ],
+  "rules": [
+    "Workspace terminal rendering must remain readable when terminal count changes from one pane to multiple panes.",
+    "Adding terminal panes must not corrupt the existing pane's visible text.",
+    "Terminal renderer changes must not alter terminal process lifecycle, PTY sizing contracts, auth behavior, billing behavior, hosted API contracts, or database behavior."
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/terminals/WorkspaceTerminal.jsx",
+      "summary": "Disable WebGL renderer attachment by default so multi-pane terminal grids use xterm's stable canvas renderer."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "Local desktop renderer behavior only; no API or data contract changes."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React terminal renderer change."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

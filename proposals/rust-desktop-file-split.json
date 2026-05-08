@@ -1,0 +1,164 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.desktop_file_split",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Split the rust-diffforge React app shell and Tauri host into a small set of domain files while preserving existing desktop behavior.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "file.rust.app_shell",
+      "summary": "Move App.jsx responsibilities into simplified app, agents, terminal, files, vault, audio, and MCP frontend modules while keeping App.jsx as the root composer."
+    },
+    {
+      "kind": "file_responsibility_changed",
+      "target_id": "file.rust.tauri_host",
+      "summary": "Move lib.rs responsibilities into simplified api, terminal, workspace file, audio, platform, process, and validation Rust modules while keeping lib.rs as the Tauri setup and command registration spine."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "flow.rust.desktop_auth",
+      "summary": "Desktop auth startup, deep-link handling, session validation, paid-plan gating, logout, and opener allowlist behavior remain unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.terminal_workspace",
+      "summary": "Terminal pane ids, PTY spawn/despawn behavior, resize behavior, telemetry event names, local CLI launch behavior, and terminal command names remain unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.files_view",
+      "summary": "The VS Code-like files explorer, read-only file bridge, highlighting, layout persistence, git status, and bounded diff behavior remain unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.audio_view",
+      "summary": "Whisper model status/download, audio widget routing, local transcription, focused text insertion, and audio data handling remain unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.mcps_view",
+      "summary": "The local MCP registry remains localStorage-backed configuration only and does not start MCP processes or expose MCPs to local CLI sessions."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or hosted API data access change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/App.jsx",
+      "summary": "Reduce App.jsx to a root composer that imports the extracted frontend domain modules."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/app/",
+      "summary": "Add the extracted app shell and shared styled-components module."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/terminals/",
+      "summary": "Add terminal pane, resize, lifecycle, and telemetry modules used by the Agents workspace surface."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/agents/",
+      "summary": "Add the Agents workspace rail surface that composes terminal primitives without owning terminal internals."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/files/",
+      "summary": "Add files workspace, explorer pane, preview pane, and file helper modules."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/vault/",
+      "summary": "Add the placeholder Vault workspace view."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/audio/",
+      "summary": "Add audio setup, widget, and capture helper modules."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src/mcps/",
+      "summary": "Add MCP workspace view and local MCP storage/model helpers."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Reduce lib.rs to Tauri builder, plugin setup, state setup, and command registration."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/api.rs",
+      "summary": "Move backend health, desktop auth, workspace API, and HTTP helpers."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/terminals.rs",
+      "summary": "Move PTY terminal state, pool, open, write, resize, close, and telemetry behavior."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/terminal_cli.rs",
+      "summary": "Move local Codex/Claude CLI detection, install, login, update, and terminal launch helpers."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/workspace_files.rs",
+      "summary": "Move workspace root validation, directory listing, file read, git status, and bounded diff behavior."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Move Whisper model, audio widget, local transcription, and text insertion command behavior."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/platform.rs",
+      "summary": "Move platform-specific shell, path, window icon, and text insertion helpers."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/process.rs",
+      "summary": "Move bounded process execution helpers shared by terminal CLI, workspace files, and audio."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/src/validation.rs",
+      "summary": "Move common input validation helpers."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "This is a local code organization change. Tauri command names, invoke payloads, storage keys, event names, filesystem safety checks, auth boundaries, and local audio data handling remain unchanged."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle after frontend imports are split."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and Rust module boundaries."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

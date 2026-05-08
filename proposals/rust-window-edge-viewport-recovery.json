@@ -1,0 +1,56 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.window_edge_viewport_recovery",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add custom resize-edge hit areas that keep native resize behavior and recover the frameless desktop window when its edge is stranded off-screen.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.window_resize_edges",
+      "summary": "The React WebView shell exposes invisible resize-edge zones that start Tauri resize dragging for each window edge and corner."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.window_viewport_recovery",
+      "summary": "Double-clicking a resize edge or corner repositions the window so its outer bounds are clamped inside the current monitor work area."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.window_permissions",
+      "summary": "The desktop capability adds only the Tauri window permissions needed to read outer bounds, read monitor work areas, set window position, and start resize dragging."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_contract",
+      "summary": "Desktop auth, billing, backend API, workspace, terminal, and database contracts are unchanged."
+    }
+  ],
+  "rules": [
+    "Resize-edge recovery must not alter auth, billing, workspace, terminal, or database behavior.",
+    "Single-click dragging a resize edge must continue to invoke Tauri native resize dragging.",
+    "Double-clicking a resize edge must keep the window within the current monitor work area when Tauri monitor APIs are available.",
+    "Window API permissions must remain scoped to window positioning and resize behavior only."
+  ],
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the desktop React WebView bundle."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri capability changes."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-08"
+}

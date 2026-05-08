@@ -3,19 +3,59 @@
   "id": "proposal.rust.window_terminal_shutdown",
   "kind": "proposal",
   "status": "pending",
-  "summary": "Ensure the app-rendered close button runs native terminal shutdown before closing the Tauri window.",
+  "summary": "Ensure app and terminal close paths run native terminal shutdown before the Tauri window exits.",
   "scope": "single_project",
   "project_id": "rust-diffforge",
   "review_items": [
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.terminal_close_all",
-      "summary": "The Tauri host exposes a terminal_close_all command that drains every active terminal instance from the shared terminal map, emits close progress events, and runs existing terminal cleanup sequences concurrently before returning."
+      "summary": "The Tauri host exposes a terminal_close_all command that drains every active terminal instance from the shared terminal map, emits close progress events, shuts down unused warm PTYs, runs existing terminal cleanup sequences concurrently, sweeps app-owned Windows headless console hosts, and waits only a bounded interval before returning so app close cannot hang during startup."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_close",
+      "summary": "Single-pane terminal_close removes the pane from native state and waits for its process cleanup to finish before the command resolves."
     },
     {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.window_close",
-      "summary": "The app-rendered close button shows a blocking closing overlay, awaits terminal_close_all, displays terminal close progress, and then calls the Tauri window close API."
+      "summary": "The app-rendered close button and native close requests show a blocking closing overlay, await terminal_close_all, display terminal close progress, and then request native app exit from the Tauri host instead of relying only on renderer-side window close promises."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.native_app_exit_after_terminal_shutdown",
+      "summary": "The Tauri host exposes a close_app_after_terminal_shutdown command that logs the final close request and schedules native app exit after terminal cleanup has completed."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.native_window_close",
+      "summary": "Native window close requests such as OS close controls are intercepted in the WebView and routed through the same terminal shutdown sequence as the custom title bar close button."
+    },
+    {
+      "kind": "condition_changed",
+      "target_id": "rust-diffforge.window_api_web_fallback",
+      "summary": "Tauri-only window controls, native close listeners, and resize-state listeners first confirm Tauri window metadata exists so browser/dev-web rendering no-ops instead of crashing when @tauri window APIs are unavailable."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_pty_pool_shutdown",
+      "summary": "The warm PTY pool tracks shutdown state, stops future refill work during app shutdown, drains unused prepared shells, waits briefly for in-flight refill work to go idle, kills prepared shell processes before dropping PTY handles, and cleans prepared shells through the same process-tree kill path."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_reader_exit_cleanup",
+      "summary": "Terminal reader shutdown removes stale instances with an async write lock instead of blocking a Tokio runtime worker thread."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.agent_login_terminal_shutdown",
+      "summary": "Agent login terminal child processes launched by the desktop app are tracked and closed during app shutdown."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.terminal_cleanup_audit_log",
+      "summary": "Native terminal cleanup writes structured audit events for terminal close, app close, warm PTY cleanup, login terminal cleanup, and drop-time fallback cleanup so stray processes can be investigated from the terminal telemetry log."
     },
     {
       "kind": "producer_behavior_changed",
@@ -34,9 +74,48 @@
     "The closing overlay must show how many active terminal cleanup sequences have completed out of the total being closed.",
     "The app should automatically close when terminal cleanup reaches the final count or terminal_close_all returns.",
     "Closing all terminals must drain the active terminal map before process cleanup so late resize/write calls cannot keep stale PTY handles alive.",
+    "Closing one terminal must wait for native process cleanup before reporting success to the caller.",
     "Closing all active terminals during app shutdown should run bounded per-terminal cleanup concurrently so multi-terminal workspaces are not delayed by serial child-process polling.",
-    "The window close action should continue closing the app even if terminal shutdown reports a best-effort failure.",
+    "terminal_close_all must wait for active terminal cleanup and warm PTY pool cleanup only for a bounded interval, then allow app close to continue while detached cleanup keeps running.",
+    "Terminal reader exit cleanup must not call blocking Tokio lock APIs from async runtime workers.",
+    "Terminal cleanup must kill and poll the child shell process before dropping PTY master, writer, or reader handles so handle teardown cannot prevent process termination.",
+    "Unused warm PTYs must be drained and killed during app shutdown so prewarmed shells cannot remain after the app exits.",
+    "Warm PTY cleanup must report the child process kill result before dropping PTY handles, and PTY handle teardown must not block terminal_close_all progress.",
+    "During full app shutdown on Windows, app-owned conhost.exe children must be swept with direct process cleanup after terminal cleanup starts so console host processes cannot remain when their shell child cleanup is detached or blocked.",
+    "If the warm PTY pool is refilling during shutdown, app close should wait for the refill worker to observe shutdown and finish cleanup.",
+    "Agent login terminals launched by the app must be tracked and cleaned up during app shutdown instead of being left outside the terminal lifecycle.",
+    "Native terminal cleanup must log its cleanup reason, pane id when known, instance id when known, process id when available, kill attempt outcome, final exit observation, and any bounded-timeout detach summary.",
+    "Drop-time terminal cleanup must log start and finish events during normal Rust teardown so direct process-stop paths that still run destructors can be audited.",
+    "The native app must log its host process id when it starts and in shutdown cleanup summaries so missing drop-time completion can identify abrupt hard termination.",
+    "Forced operating-system termination may prevent destructor cleanup and telemetry writes; the app should still log every cleanup path it can observe before termination.",
+    "Native close requests must be prevented until the app has started the same terminal shutdown path used by the custom close button.",
+    "The renderer close flow must request native app exit from the Tauri host after terminal cleanup instead of depending on a renderer-side destroy promise to close the app.",
+    "If the native app-exit request fails, the renderer must log the close failure before returning to an interactive dashboard state.",
+    "Tauri-only window controls must no-op in browser/dev-web contexts where window.__TAURI_INTERNALS__.metadata is unavailable.",
+    "The window close action should continue closing the app if terminal shutdown reports a best-effort failure or exceeds the bounded close timeout.",
     "This change must not alter desktop auth, billing, workspace API, or database behavior."
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/AppShell.jsx",
+      "summary": "Route native window close requests through the existing close overlay and terminal_close_all sequence before requesting native app exit from the Tauri host, with explicit failure telemetry."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Track warm PTY pool shutdown state, add drop-time cleanup fallback for active terminals and prepared PTYs, expose the native app-exit command, and log drop-time cleanup start and finish."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminals.rs",
+      "summary": "Make terminal_close_all wait for active terminal cleanup and warm PTY cleanup with a bounded timeout before returning, remove runtime-blocking reader cleanup locks, sweep app-owned Windows console hosts, and log per-process cleanup outcomes."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/terminal_cli.rs",
+      "summary": "Track spawned login terminal child processes, expose app-shutdown cleanup for them, kill warm shell children before detached PTY handle teardown, directly clean Windows console hosts, and log warm/login terminal cleanup outcomes."
+    }
   ],
   "compatibility": {
     "breaking_change": false,

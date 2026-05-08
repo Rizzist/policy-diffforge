@@ -63,6 +63,11 @@
       "summary": "Saving workspace settings persists name changes through the desktop API and stores terminal count/root directory as local desktop settings."
     },
     {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_terminal_directory_telemetry",
+      "summary": "Workspace root validation, settings save, terminal_open dispatch, and terminal_open native resolution write local telemetry with requested and resolved working-directory context so terminal directory changes can be audited."
+    },
+    {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.workspace_terminal_layout",
       "summary": "The live terminal surface fills the available workspace width and height with resizable terminal panels when a workspace has multiple local terminals."
@@ -154,6 +159,7 @@
     "Workspace rail settings controls must be overlaid inside the workspace row and hidden until hover or keyboard focus so workspace text layout does not shift.",
     "Workspace name changes must validate the desktop session token and update only a workspace owned by that user.",
     "Root directory changes must be validated by the Tauri host as existing directories before being saved or used for a PTY launch.",
+    "Workspace root directory validation, local settings save, and terminal_open must write enough local JSONL telemetry to identify the requested directory, resolved directory, workspace id, pane id, terminal index, and whether a terminal restart was triggered.",
     "Terminal count is bounded local UI state from 1 to 16 and must not imply extra hosted workspace capacity or database columns.",
     "Closing an individual terminal in a multi-pane workspace must remove that pane from the active layout, decrement and persist the local terminal count, and keep the count bounded to at least one without changing SQL/database capacity.",
     "Closing an individual terminal must keep surviving panes mounted with their existing pane ids, instance ids, PTY sessions, and xterm scrollback buffers.",
