@@ -63,6 +63,11 @@
       "summary": "The local MCP server supports both newline JSON-RPC and Content-Length framed stdio messages, ignores initialization notifications, and keeps the transport open for Codex/Claude-style MCP clients."
     },
     {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.codex_coordination_mcp_tool_approvals",
+      "summary": "Generated Codex MCP configs default Coordination Kernel tools to prompt approval, then explicitly auto-approve only the bounded coordination allowlist used for briefs, task claims, leases, planning, change announcements, patch validation, local SQL classification, status reads, and approval-request records."
+    },
+    {
       "kind": "function_logic_changed",
       "target_id": "rust-diffforge.dev_command",
       "summary": "The Tauri host remains the Cargo default-run binary so npm run dev and plain cargo run continue launching rust-diffforge even after adding the coordination_mcp binary."
@@ -129,7 +134,9 @@
     "Deferred prepared-shell agent starts are blocked unless the terminal already has a coordination session, preventing prewarm paths from bypassing worktree/MCP activation if re-enabled later.",
     "Terminal open results and telemetry must report the actual process working directory so coordinated agents visibly point at the assigned worktree rather than the shared repo root.",
     "Interrupted coordination sessions mark their active worktree records interrupted while leaving the git worktree files on disk for review or future explicit cleanup.",
-    "Append-only event logging must remain safe under parallel terminal launch contention and must not cause a successfully created worktree to be reported as an unsafe coordination_only session."
+    "Append-only event logging must remain safe under parallel terminal launch contention and must not cause a successfully created worktree to be reported as an unsafe coordination_only session.",
+    "Generated Codex MCP configs must prompt by default for new or unlisted Coordination Kernel tools, while the audited low-risk allowlist may auto-approve local coordination reads, claims, leases, planning, change announcements, patch validation, SQL classification, status reads, and approval-request records.",
+    "Generated Codex MCP configs must keep patch submission, merge requests, workspace violation resolution, SQL read/query/migration/shadow validation, persistent memory writes, and cloud orchestration mutation/export/import/sync tools prompt-gated."
   ],
   "patches": [
     {
@@ -201,6 +208,11 @@
       "op": "replace",
       "path": "rust-diffforge/src-tauri/src/coordination/mcp.rs",
       "summary": "Support Content-Length framed stdio in addition to newline JSON-RPC for MCP client compatibility."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/coordination/kernel.rs",
+      "summary": "Generate Codex Coordination Kernel MCP config with prompt-by-default tool approvals and an explicit low-risk coordination tool auto-approve allowlist."
     },
     {
       "op": "replace",

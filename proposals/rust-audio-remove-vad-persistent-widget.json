@@ -19,6 +19,11 @@
     },
     {
       "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_capture_preroll",
+      "summary": "Native push-to-talk capture includes up to 300ms of already-buffered microphone audio before the formal recording start so initial syllables are less likely to be clipped; the pre-roll is included in local Whisper WAV capture and queued into the cloud realtime stream when cloud mode is active."
+    },
+    {
+      "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.audio_input_stats",
       "summary": "Audio input stats continue to expose level and buffer timing for UI meters, but no longer report VAD threshold, speech state, speech duration, last speech timing, or noise-floor fields."
     },
@@ -32,7 +37,7 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src-tauri/src/audio.rs",
-      "summary": "Capture and resample the recorded audio window directly, remove local VAD gating/diagnostics, and keep generic focused insertion from hiding the widget."
+      "summary": "Capture and resample the recorded audio window directly, include a bounded 300ms native pre-roll from the live input buffer, remove local VAD gating/diagnostics, and keep generic focused insertion from hiding the widget."
     },
     {
       "op": "replace",
@@ -42,7 +47,7 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src-tauri/src/lib.rs",
-      "summary": "Remove VAD constants and fields from shared audio command payloads."
+      "summary": "Remove VAD constants and fields from shared audio command payloads and define the native capture pre-roll duration."
     },
     {
       "op": "replace",

@@ -1,0 +1,109 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_cancel_menu_release",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Refine rust-diffforge handsfree audio controls so Escape resets the recorder without hiding it and the Menu push-to-talk key releases into transcription instead of opening a context menu.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget_cancel",
+      "summary": "Escape cancels any active recording or transcription request, resets the audio widget to its provider-specific start state, and keeps the recorder window visible."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget_transcription_cancel",
+      "summary": "Canceled local Whisper transcription requests are invalidated in the widget and ask the Tauri host to cancel the active Whisper process so stale transcript results cannot be published or inserted later."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_menu_push_to_talk",
+      "summary": "On Windows, the Tauri host installs a focused low-level keyboard hook for the bare Menu/ContextMenu key when it is the configured hold-to-record binding, so press/release is captured while another app owns focus and the target app does not open its context menu."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_handsfree_focus",
+      "summary": "Handsfree push-to-talk shows the recorder widget without activating or focusing it, preserving focus in the external textbox that should receive inserted transcript text."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_menu_push_to_talk_widget_fallback",
+      "summary": "The audio widget also suppresses context-menu events produced inside the WebView and treats them as a push-to-talk release fallback when the widget itself owns focus."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Keep the widget visible on cancel, reset to start state, ignore stale transcription results, and handle Menu-key context-menu release fallback."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Register a local Whisper transcription cancel command and store a cancellation token in audio state."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Pass the cancellation token into local Whisper transcription and expose a cancel command."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/process.rs",
+      "summary": "Allow command capture callers to provide a cancellation predicate that kills the child process."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/handsfree_audio.rs",
+      "summary": "Stop the global Escape handler from hiding the audio widget after emitting the cancel event, add a Windows low-level Menu-key hook for out-of-app press/release capture, and avoid focusing the widget during handsfree activation."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Create the audio widget window as non-focused by default so handsfree activation can preserve focus in the external target app."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/Cargo.toml",
+      "summary": "Add a Windows-only windows-sys dependency for the native Menu-key keyboard hook."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop recorder window and its Tauri host commands. Existing shortcut configuration, provider selection, latest-result publishing, and focused text insertion stay available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": "unchanged",
+    "stores_audio_recordings": false,
+    "stores_transcripts": "Canceled dictation does not publish or insert transcript text. Successful, uncanceled dictation continues to publish the latest transcript to local WebView storage.",
+    "sends_audio_to_remote_service": "Unchanged from the selected transcription provider behavior; cloud mode closes the existing Deepgram realtime session on cancel."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and audio host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

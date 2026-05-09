@@ -3,7 +3,7 @@
   "id": "proposal.rust.audio_widget_focus_mode",
   "kind": "proposal",
   "status": "pending",
-  "summary": "Refine the rust-diffforge audio widget so the idle recorder is a circular logo-only control that expands horizontally for push-to-talk recording and transcription.",
+  "summary": "Refine the rust-diffforge audio widget so the idle recorder is a graphite circular logo-only control that expands horizontally for push-to-talk recording and transcription.",
   "scope": "single_project",
   "project_id": "rust-diffforge",
   "review_items": [
@@ -15,12 +15,22 @@
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.audio_widget_recording_visual",
-      "summary": "During push-to-talk recording the expanded widget keeps the Diffforge logo at the leading edge and shows animated audio bars to the right without idle labels, status copy, recorder controls, or the idle circular shell."
+      "summary": "During push-to-talk recording the expanded graphite widget keeps the Diffforge logo at the leading edge and shows a denser deterministic audio visualizer to the right, mixing actual input level with animated low-noise motion so the bars remain lively without idle labels, status copy, recorder controls, or the idle circular shell."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_input_meter_visual",
+      "summary": "The Audio setup input meter uses additional bars and staggered animation variables so quiet or noisy rooms still show a responsive, high-signal microphone preview while preserving the same underlying audio stats; when no input signal is present, the bars drop into a calmer low-energy state instead of looking fully active."
     },
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.audio_widget_processing_visual",
-      "summary": "After push-to-talk release, while local Whisper or cloud transcription is processing, the expanded widget keeps the audio bars visible and replaces the leading logo with the loading treatment until the widget returns to ready or error state; the bars are revealed after the resize frame to reduce opening jank."
+      "summary": "After push-to-talk release, while local Whisper or cloud transcription is processing, the expanded graphite widget keeps the denser animated audio bars visible and replaces the leading logo with the loading treatment until the widget returns to ready or error state; the bars are revealed after the resize frame to reduce opening jank."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget_close_visual",
+      "summary": "When transcription completes or returns to the start state, the expanded audio widget keeps the focused window size briefly and plays the audio bar reveal in reverse before resizing back to the compact logo-only state."
     },
     {
       "kind": "security_level_changed",
@@ -30,7 +40,7 @@
     {
       "kind": "no_policy_change",
       "target_id": "rust-diffforge.audio_capture",
-      "summary": "Microphone capture, transcription providers, transcript storage, and focused text insertion behavior remain otherwise unchanged."
+      "summary": "This visual proposal does not otherwise change microphone capture, transcription providers, transcript storage, or focused text insertion behavior; native capture pre-roll is tracked separately by proposal.rust.audio_remove_vad_persistent_widget."
     },
     {
       "kind": "no_policy_change",
@@ -42,12 +52,12 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
-      "summary": "Render transparent idle logo chrome, focused recording bars, focused processing loader, and use an animation-frame-staged reveal after resizing the widget window."
+      "summary": "Render transparent idle logo chrome, denser focused recording bars with deterministic low-noise motion, focused processing loader, use an animation-frame-staged reveal after resizing the widget window, and hold the focused layout long enough to play a reverse close animation before compacting."
     },
     {
       "op": "replace",
       "path": "rust-diffforge/src/app/appStyles.js",
-      "summary": "Add transparent widget root and idle shell handling, rounded focused widget styling, logo badge styling, transform-based recording bars, and processing loader styles."
+      "summary": "Add transparent widget root and idle shell handling, graphite focused widget styling, logo badge styling, transform-based recording/input bars with staggered animation, processing loader styles, and reverse close transitions."
     },
     {
       "op": "add",

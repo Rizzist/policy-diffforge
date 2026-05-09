@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_recorder_open_state",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Make rust-diffforge's Audio tab reflect the native recorder window's open state and suppress the false Windows Menu-key shortcut registration error.",
+  "scope": "multi_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_recorder_window_state",
+      "summary": "The Tauri host reports and emits audio recorder window visibility so the React shell can disable the Open recorder button while the recorder window is already visible."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_tab_recorder_button",
+      "summary": "The Audio tab renders an already-open recorder button as disabled with a clear Recorder open label until the native recorder window is hidden or closed."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_menu_push_to_talk_status",
+      "summary": "On Windows, a bare Menu/ContextMenu hold-to-record binding is considered registered when the low-level Menu-key hook is the active capture path, preventing a false Unknown VKCode conflict message from being shown."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Expose the audio widget visibility event payload shape and register an audio_widget_status command."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Emit recorder visibility changes on show, hide, uninstall-hide, and native window destruction."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/handsfree_audio.rs",
+      "summary": "Treat the Windows bare Menu-key hook as a successful hold-to-record registration when global-shortcut cannot register ContextMenu."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/AppShell.jsx",
+      "summary": "Track audio recorder visibility in the main shell and pass it into the Audio tab."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Disable and relabel the recorder open button when the recorder window is already visible."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop app. Existing recorder creation, microphone setup, provider selection, and shortcut customization remain available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": "unchanged",
+    "stores_audio_recordings": false,
+    "stores_transcripts": "unchanged",
+    "sends_audio_to_remote_service": "unchanged from the selected transcription provider behavior"
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and audio host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}
