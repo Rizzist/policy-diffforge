@@ -1,0 +1,70 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_deepgram_buffering",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Prevent Deepgram cloud dictation from clipping the beginning or end of push-to-talk recordings.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_capture_preroll",
+      "summary": "Cloud push-to-talk arms native capture before opening the Deepgram WebSocket, then streams the buffered capture backlog when Deepgram attaches so the 500ms pre-roll and any connection-delay audio are sent to cloud transcription."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.deepgram_transcription",
+      "summary": "Normal Deepgram push-to-talk release keeps the realtime audio stream open for 500ms after release before closing, reducing clipped final words without changing local Whisper capture."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Arm cloud capture before opening Deepgram and wait 500ms after push-to-talk release before stopping the cloud realtime stream."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "When a Deepgram realtime stream attaches after capture has already started, send the buffered captured chunks from the native ring buffer before streaming live chunks."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop app. Local Whisper transcription, recorder shortcuts, provider selection, API key handling, and transcript insertion remain available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": true,
+    "sends_audio_to_remote_service": "Only when the user selects cloud mode; Deepgram now receives the same 500ms pre-roll-backed capture window plus 500ms of release tail audio for normal push-to-talk completion.",
+    "stores_audio_recordings": false,
+    "stores_transcripts": "The latest transcript continues to use local WebView result storage.",
+    "api_key_storage": "Unchanged; the Deepgram API key stays in local WebView storage and is not written to policy files."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and audio host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

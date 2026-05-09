@@ -1,0 +1,80 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_active_preroll_buffer",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Keep the recorder widget microphone stream warm in ready state so push-to-talk pre-roll contains real audio.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.low_power_audio_buffer",
+      "summary": "When the audio widget is ready and microphone setup is available, the widget starts the native CPAL monitor stream before push-to-talk and keeps a rolling in-memory buffer warm until the widget is closed, canceled, errors, or setup becomes unavailable."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_capture_preroll",
+      "summary": "The native idle audio ring buffer keeps approximately the last 3 seconds of microphone samples so the configured 500ms pre-roll has actual audio to include when push-to-talk capture begins."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_capture_window",
+      "summary": "Active push-to-talk captures continue to retain up to the configured recording duration instead of being truncated to the 3 second idle pre-roll buffer."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Start and reuse a warm audio buffer while the recorder widget is ready, wait for the warm buffer before arming capture, and keep it alive after successful transcription."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Define the idle audio buffer duration as 3 seconds and the capture window duration as 90 seconds."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Trim idle audio to the last 3 seconds while allowing active captures to retain the full recording window."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop recorder widget. Existing push-to-talk shortcuts, cancellation, local/cloud provider selection, and transcript insertion remain available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": true,
+    "sends_audio_to_remote_service": "Only when the user selects cloud mode and starts push-to-talk transcription; idle pre-buffer audio remains local in memory.",
+    "stores_audio_recordings": false,
+    "stores_transcripts": "The latest transcript continues to use local WebView result storage.",
+    "raw_audio_storage": "The ready-state pre-roll buffer is an in-memory rolling buffer only and is released when the widget closes or the audio buffer is stopped."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm.cmd run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and native audio host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

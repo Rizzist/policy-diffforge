@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_transcription_ptt_lockout",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Prevent push-to-talk input from queuing a new recording while the recorder is arming, recording, transcribing, checking, or warming.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget_push_to_talk",
+      "summary": "Push-to-talk press events are accepted only from start states. Presses during arming, recording, transcription processing, status checking, or model warming are ignored and do not latch a pending recording."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget_transcription",
+      "summary": "While local Whisper or cloud Deepgram transcription is running, repeated push-to-talk clicks, key presses, or native shortcut events cannot start or queue another capture; entering transcription also clears any held-key state so a fresh press is required after the widget returns to a start state."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Gate push-to-talk press handling so busy recorder states cannot set the held-key flag or queue a follow-up recording, and clear the held-key flag when transcription starts."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop recorder widget. Existing push-to-talk shortcuts, cancellation, local/cloud provider selection, and transcript insertion remain available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": "unchanged",
+    "sends_audio_to_remote_service": "unchanged from the selected transcription provider behavior",
+    "stores_audio_recordings": false,
+    "stores_transcripts": "The latest transcript continues to use local WebView result storage."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm.cmd run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}
