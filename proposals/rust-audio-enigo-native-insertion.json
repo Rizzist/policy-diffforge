@@ -1,0 +1,78 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_enigo_native_insertion",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Standardize rust-diffforge focused transcript insertion on Enigo native Unicode text output instead of clipboard paste or app-local manual SendInput code.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.focused_text_insertion",
+      "summary": "Both registered transcript insertion commands use the shared Enigo text helper so focused insertion follows Enigo's text/key_sequence path with native Unicode input where the platform supports it."
+    },
+    {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.audio_insert_legacy_command",
+      "summary": "The older insert_transcribed_text command no longer uses clipboard paste fallbacks or custom app-owned Windows SendInput batching."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.audio_capture",
+      "summary": "Microphone capture, local/cloud transcription, transcript cleaning, transcript length limits, and widget visibility behavior remain unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Route the older transcript insertion command through the shared Enigo insertion helper and remove platform-specific paste/manual insertion helpers."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/handsfree_audio.rs",
+      "summary": "Keep the shared Enigo helper on Keyboard::text and align insertion error copy with native insertion behavior."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Remove app-owned Windows keyboard input structs/constants that are no longer needed after standardizing on Enigo."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/validation.rs",
+      "summary": "Remove the now-unused SendInput declaration from the Windows user32 extern block."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Rename focused insertion widget status copy from typing to inserting."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The command names and cleaned transcript input contract remain the same; only the native insertion backend changes."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and native text insertion integration."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

@@ -13,6 +13,11 @@
       "summary": "The desktop app creates a local .agents/kernel.sqlite authority with tasks, sessions, leases, worktrees, violations, patches, merge jobs, memories, SQL policy, and orchestration metadata."
     },
     {
+      "kind": "function_logic_changed",
+      "target_id": "rust-diffforge.workspace_agents_gitignore",
+      "summary": "When a workspace already has a local .agents directory, or when the coordination kernel creates one, the desktop host idempotently adds .agents/ to that workspace's .gitignore so local coordination artifacts and agent worktrees are not accidentally committed."
+    },
+    {
       "kind": "security_level_changed",
       "target_id": "rust-diffforge.agent_terminal_launch",
       "summary": "Write-enabled app-launched coding-agent terminals are assigned per-session git worktrees by default instead of using the shared repo root as their write workspace."
@@ -140,7 +145,7 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src-tauri/src/lib.rs",
-      "summary": "Register coordination commands, route app-launched agent terminals through worktree-first coordination setup, retain per-terminal coordination session metadata for lifecycle cleanup, and add a native terminal lifecycle lock."
+      "summary": "Register coordination commands, route app-launched agent terminals through worktree-first coordination setup, retain per-terminal coordination session metadata for lifecycle cleanup, add .agents gitignore protection, and add a native terminal lifecycle lock."
     },
     {
       "op": "replace",
@@ -180,7 +185,17 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src-tauri/src/coordination/db.rs",
-      "summary": "Retry transient SQLite busy/locked failures around WAL setup, foreign-key setup, and idempotent schema migrations."
+      "summary": "Retry transient SQLite busy/locked failures around WAL setup, foreign-key setup, idempotent schema migrations, and ensure newly-created .agents directories are ignored by the workspace .gitignore."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/workspace_files.rs",
+      "summary": "Add a shared helper that appends .agents/ to a workspace .gitignore only when the .agents directory exists and no equivalent ignore entry is already present."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/api.rs",
+      "summary": "Run .agents gitignore protection during workspace root validation so existing coordination artifacts are ignored as soon as a client selects a workspace."
     },
     {
       "op": "replace",

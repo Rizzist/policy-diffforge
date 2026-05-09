@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_widget_focus_mode",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Refine the rust-diffforge audio widget so the idle recorder is a circular logo-only control that expands horizontally for push-to-talk recording and transcription.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget",
+      "summary": "The recorder widget keeps a compact circular logo-only layout with a transparent idle window surface while idle, setup, warming, missing, or error states are active, and switches to a same-height expanded layout only while push-to-talk is arming, recording, or transcription processing is active."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget_recording_visual",
+      "summary": "During push-to-talk recording the expanded widget keeps the Diffforge logo at the leading edge and shows animated audio bars to the right without idle labels, status copy, recorder controls, or the idle circular shell."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget_processing_visual",
+      "summary": "After push-to-talk release, while local Whisper or cloud transcription is processing, the expanded widget keeps the audio bars visible and replaces the leading logo with the loading treatment until the widget returns to ready or error state; the bars are revealed after the resize frame to reduce opening jank."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.audio_widget_window_capability",
+      "summary": "The audio-widget window receives the Tauri set-size permission so the frontend can resize only this separate recorder window between compact and focused dimensions."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.audio_capture",
+      "summary": "Microphone capture, transcription providers, transcript storage, and focused text insertion behavior remain otherwise unchanged."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Render transparent idle logo chrome, focused recording bars, focused processing loader, and use an animation-frame-staged reveal after resizing the widget window."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Add transparent widget root and idle shell handling, rounded focused widget styling, logo badge styling, transform-based recording bars, and processing loader styles."
+    },
+    {
+      "op": "add",
+      "path": "rust-diffforge/src-tauri/capabilities/audio-widget-resize.json",
+      "summary": "Allow the audio-widget window to call the Tauri window set-size API for compact/focused state transitions."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop recorder window. Existing push-to-talk shortcut handling, Audio tab setup, transcription providers, and transcript publication remain available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": "unchanged",
+    "stores_audio_recordings": "unchanged",
+    "stores_transcripts": "unchanged",
+    "sends_audio_to_remote_service": "unchanged from the selected transcription provider behavior"
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri configuration and command integration."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

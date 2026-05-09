@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_handsfree_ptt",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Make rust-diffforge audio dictation handsfree while the app is open by using global P-key push-to-talk and focused text insertion.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_shortcut",
+      "summary": "The desktop host registers P as a global push-to-talk key while the app is running, emitting press and release events to the audio widget instead of requiring the widget WebView to hold keyboard focus."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget",
+      "summary": "The recorder widget opens as the handsfree controller, listens for native P press/release events, starts capture on press, finishes transcription on release, then returns to ready state without requiring the user to click the widget."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.focused_text_insertion",
+      "summary": "After a non-empty transcript is produced, the widget publishes the result to the Audio tab for debugging and also invokes native text insertion so the transcript is typed into the currently focused operating-system target, such as Chrome, ChatGPT, or a terminal."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.native_text_output",
+      "summary": "Focused transcript insertion uses the Enigo crate for cross-platform keyboard text output, preserving the existing bounded transcript cleaning before native insertion."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.whisper_engine",
+      "summary": "The Whisper model/runtime resolution, model warm cache, audio capture, and transcription engine behavior are not otherwise changed by this proposal."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, or billing change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/Cargo.toml",
+      "summary": "Add Enigo as the native focused text output dependency."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Register global P push-to-talk events, expose an event payload shape, and include the handsfree event in the existing audio host state."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Let the widget listen for global push-to-talk events, insert successful transcripts into the focused target, and keep publishing results to the Audio tab."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The behavior is local to the desktop app while it is open. Existing manual Audio tab setup, widget UI, CommandOrControl+Shift+Space toggle, and latest-result debug panel remain available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": true,
+    "stores_audio_recordings": "unchanged from the pending local/cloud audio proposals",
+    "stores_transcripts": "the latest transcript remains in local WebView storage for the Audio tab debug panel",
+    "native_text_output": "non-empty cleaned transcript text is emitted through operating-system keyboard simulation to the focused target after release"
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and native text output."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_deepgram_cloud",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Add an Audio mode selector so rust-diffforge can use local Whisper UI or cloud Deepgram Nova-3 transcription.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_view",
+      "summary": "The Audio workspace view lets users choose local or cloud dictation. Local mode keeps the existing Whisper download/status controls UI-only for this change, while cloud mode shows Deepgram Nova-3 configuration with a language selector and hidden API key field."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget",
+      "summary": "The recorder widget uses the selected transcription mode. Cloud mode opens a live Deepgram /v1/listen WebSocket with model nova-3, streams raw linear16 microphone chunks while push-to-talk is held, emits interim transcript updates in realtime, and publishes the final transcript back to the Audio tab when the stream closes."
+    },
+    {
+      "kind": "data_access_changed",
+      "target_id": "rust-diffforge.deepgram_transcription",
+      "summary": "Cloud mode streams push-to-talk microphone audio to Deepgram using the user's API key. Local mode continues to route through the existing local Whisper command path."
+    },
+    {
+      "kind": "security_level_changed",
+      "target_id": "rust-diffforge.deepgram_api_key",
+      "summary": "The Deepgram API key is entered through a password input, stored locally for the desktop WebView so it is available on next launch, passed only to the Tauri transcription command, and never written to policy files."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, or hosted Diff Forge API change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Add local/cloud mode controls, Deepgram Nova-3 language/API key settings, cloud readiness states, and mode-aware recorder widget behavior."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/audioCapture.js",
+      "summary": "Persist the selected transcription provider, selected Deepgram language, and hidden API key in local WebView storage."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Add compact Audio mode, cloud settings, and password input styles consistent with the desktop workspace UI."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Add Deepgram request/response structs and command registration for cloud transcription."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Add the Deepgram Nova-3 transcription command using bounded request validation, WAV bytes, language selection, and transcript extraction."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The change is local to the desktop app. Local Whisper controls and command names remain available; cloud transcription is opt-in and uses a user-provided Deepgram key."
+  },
+  "data_handling": {
+    "captures_microphone_audio": true,
+    "sends_audio_to_remote_service": "Only when the user selects cloud mode; raw linear16 microphone chunks are streamed to Deepgram over a live WebSocket for Nova-3 transcription.",
+    "stores_audio_recordings": false,
+    "stores_transcripts": "The latest transcript continues to use existing local WebView result storage.",
+    "api_key_storage": "The Deepgram API key is stored in local WebView storage for this desktop origin and masked in the UI."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and Deepgram host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.workspace_settings_graphite_ui",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Refresh rust-diffforge workspace opening and settings UI with compact Diffforge desktop styling and replace manual terminal count entry with a visual 1-12 layout picker.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_rail_opening_ui",
+      "summary": "Workspace rail rows become denser open-workspace controls with visible runtime/status metadata and a separate compact settings icon action."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_settings_modal",
+      "summary": "Workspace settings use a slimmer operational modal with concise workspace identity, root directory, runtime/default actions, and local-only terminal controls."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.workspace_terminal_count_picker",
+      "summary": "The manual terminal number input is replaced by buttons for counts 1 through 12, each showing a small layout preview generated from the same react-resizable-panels row/column layout logic."
+    },
+    {
+      "kind": "condition_changed",
+      "target_id": "rust-diffforge.workspace_terminal_count_bound",
+      "summary": "Local workspace terminal count is bounded from 1 to 12 instead of 1 to 16, and existing saved values above 12 normalize down to 12."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "rust-diffforge.desktop_auth_billing_api_database",
+      "summary": "Desktop auth, billing gates, hosted workspace API contracts, SQL/database schema, terminal PTY bridge, and native resize commands remain unchanged."
+    }
+  ],
+  "rules": [
+    "Workspace terminal count must be selected through fixed UI buttons for counts 1 through 12.",
+    "Workspace terminal count normalization must reject values below one and clamp values above twelve.",
+    "Each terminal count option should include a compact visual preview of the row and column layout produced by the existing react-resizable-panels layout rules.",
+    "Workspace settings remain local desktop UI for terminal count and root directory; no database column or hosted API contract may be added for these values.",
+    "Workspace opening controls should remain compact and operational, keeping the terminal surface visually dominant.",
+    "Workspace settings and opening UI changes must preserve existing session validation, root-directory validation, workspace ownership checks, telemetry calls, and terminal cleanup behavior."
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/AppShell.jsx",
+      "summary": "Clamp terminal count to 12, render the workspace rail metadata, and replace the number input with a visual terminal-count picker."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Update workspace rail/settings styles and add terminal count picker plus mini layout preview styles."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/terminals/WorkspaceTerminal.jsx",
+      "summary": "Clamp shared terminal index normalization helpers to 12 visible terminals."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "safe_deploy_order": [],
+    "backward_compatible": true,
+    "notes": "Local desktop UI behavior only. Existing local settings with terminal counts above 12 are normalized to 12; auth, billing, API, SQL, and native terminal contracts are unchanged."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate PolicyGraph JSON references."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the React WebView bundle."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

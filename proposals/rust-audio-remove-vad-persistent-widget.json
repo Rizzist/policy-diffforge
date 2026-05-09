@@ -1,0 +1,95 @@
+{
+  "schema_version": 2,
+  "id": "proposal.rust.audio_remove_vad_persistent_widget",
+  "kind": "proposal",
+  "status": "pending",
+  "summary": "Keep the rust-diffforge recorder widget visible after successful dictation and remove voice-activity detection from audio capture.",
+  "scope": "single_project",
+  "project_id": "rust-diffforge",
+  "review_items": [
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_widget",
+      "summary": "After a successful transcription and focused text insertion attempt, the recorder widget returns to ready state and remains visible instead of hiding."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_capture",
+      "summary": "Push-to-talk capture sends the bounded captured audio window directly to local Whisper or cloud transcription without local voice-activity detection thresholds, speech gating, no-speech errors, or VAD diagnostics."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_input_stats",
+      "summary": "Audio input stats continue to expose level and buffer timing for UI meters, but no longer report VAD threshold, speech state, speech duration, last speech timing, or noise-floor fields."
+    },
+    {
+      "kind": "no_policy_change",
+      "target_id": "policy-diffforge.sql",
+      "summary": "No database schema, migration, SQL policy, hosted API, auth, billing, or cross-project contract change is required."
+    }
+  ],
+  "patches": [
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Capture and resample the recorded audio window directly, remove local VAD gating/diagnostics, and keep generic focused insertion from hiding the widget."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/handsfree_audio.rs",
+      "summary": "Keep handsfree focused insertion from hiding the recorder widget after a successful transcript."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/lib.rs",
+      "summary": "Remove VAD constants and fields from shared audio command payloads."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Remove VAD naming and no-speech UI paths from the recorder and Audio setup surface."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/audioCapture.js",
+      "summary": "Normalize audio capture stats without VAD-specific fields."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Remove the VAD speech-active meter variant from Audio UI styles."
+    }
+  ],
+  "compatibility": {
+    "breaking_change": false,
+    "requires_app_deploy_order": false,
+    "backward_compatible": true,
+    "notes": "The behavior is local to the desktop app. Existing recorder shortcut handling, local/cloud provider selection, latest-result storage, and focused text insertion commands remain available."
+  },
+  "data_handling": {
+    "captures_microphone_audio": true,
+    "sends_audio_to_remote_service": "Only when the user selects cloud mode; push-to-talk audio is streamed to Deepgram over the existing realtime WebSocket path.",
+    "stores_audio_recordings": false,
+    "stores_transcripts": "The latest transcript remains in local WebView storage for the Audio tab debug panel.",
+    "diagnostic_logs": "Local Whisper audio diagnostics continue to log timings, counts, byte sizes, runtime/model paths, and sanitized errors only; raw audio and transcript text are not logged."
+  },
+  "tests": [
+    {
+      "command": "node policy-diffforge/validators/validate-policy.js",
+      "working_directory": "diffforge",
+      "summary": "Validate policy proposal shape."
+    },
+    {
+      "command": "npm run build:web",
+      "working_directory": "diffforge/rust-diffforge",
+      "summary": "Validate the Vite frontend build."
+    },
+    {
+      "command": "cargo check",
+      "working_directory": "diffforge/rust-diffforge/src-tauri",
+      "summary": "Validate Tauri commands and audio host code."
+    }
+  ],
+  "created_by": "ai",
+  "created_at": "2026-05-09"
+}

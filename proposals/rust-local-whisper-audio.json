@@ -3,24 +3,39 @@
   "id": "proposal.rust.local_whisper_audio",
   "kind": "proposal",
   "status": "pending",
-  "summary": "Implement the rust-diffforge Audio tab with a local Whisper model/runtime installer, a global-shortcut recorder widget, low-power buffered capture, VAD-gated local transcription, and focused text insertion.",
+  "summary": "Implement the rust-diffforge Audio tab with a local Whisper model/runtime installer, a global-shortcut recorder widget, low-power buffered capture, push-to-talk local transcription, and focused text insertion.",
   "scope": "single_project",
   "project_id": "rust-diffforge",
   "review_items": [
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.audio_view",
-      "summary": "The Audio workspace view becomes a functional local dictation setup surface that reports Whisper model and runtime state, downloads the selected ggml base.en model, installs the packaged Windows whisper.cpp runtime when supported, detects compatible PATH/homebrew Linux and macOS runtimes, and can open the recorder widget after install."
+      "summary": "The Audio workspace view becomes a functional local dictation setup surface that reports Whisper model and runtime state, downloads the selected ggml base.en model, installs the packaged Windows whisper.cpp runtime when supported, detects compatible PATH/homebrew Linux and macOS runtimes, owns native CPAL microphone device setup, visualizes the selected input stream, can auto-open the recorder widget after workspace startup, and displays the latest local dictation result in a separate Results panel."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.audio_input_setup",
+      "summary": "The Audio tab lists available audio input devices through the Rust CPAL host, persists the selected source locally in the WebView, starts/stops a native CPAL monitor stream from the Audio tab, and shows a live input meter for the selected source without sending captured audio outside the local Tauri boundary."
     },
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.tauri_audio_host",
-      "summary": "The Tauri host downloads the Whisper model into app data, validates model/runtime hashes after download, resolves a local whisper.cpp CLI runtime per platform, transcribes short VAD-filtered WAV microphone captures locally, and never sends captured audio to the hosted API."
+      "summary": "The Tauri host downloads the Whisper model into app data, validates model/runtime hashes after download, resolves a local whisper.cpp CLI runtime per platform with whisper-cli preferred over deprecated main binaries, captures microphone input through CPAL, warms the local model file cache when the recorder opens, transcribes bounded push-to-talk WAV microphone captures locally through whisper-cli, uses a fast CLI-only profile for short dictation clips, filters known runtime warnings out of transcript results, writes toggleable local Whisper audio timing diagnostics for optimization, and never sends captured audio to the hosted API."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.whisper_uninstall",
+      "summary": "The Audio workspace view exposes an uninstall action for app-managed Whisper assets behind an in-app confirmation modal. The Tauri host hides the recorder widget, serializes against active downloads, removes the local model/runtime/download cache under the app data Whisper directory, refreshes status, and does not remove external PATH, Homebrew, or system-provided whisper.cpp runtimes."
+    },
+    {
+      "kind": "data_retention_changed",
+      "target_id": "rust-diffforge.local_audio_data",
+      "summary": "Users can explicitly remove the local Whisper model, packaged runtime, temporary download files, and any leftover local recorder scratch files stored under the app data Whisper directory."
     },
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.audio_widget",
-      "summary": "A separate hidden audio-widget window is created on demand, shown without taking focus when the local Whisper model and runtime are available, and automatically arms recording from the global shortcut."
+      "summary": "A separate audio-widget window is created on demand as a compact pill recorder with hover controls for drag, minimize, and close. The widget verifies whisper-cli readiness and warms the local Whisper model file cache when opened, stays open while recording and after transcription, uses P-key push-to-talk inside the widget, publishes transcription results back to the Audio tab, releases the recorder CPAL stream after each dictation for idle CPU/GPU behavior, and does not present microphone permission/settings UX."
     },
     {
       "kind": "producer_behavior_changed",
@@ -30,22 +45,32 @@
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.focused_text_insertion",
-      "summary": "After transcription the widget hides and the Tauri host attempts to insert the transcript into the prior operating-system text target using Windows SendInput, macOS osascript/System Events, or Linux xdotool/wtype/wl-copy/xclip fallbacks."
+      "summary": "Focused text insertion remains available as a host command, but the current recorder flow keeps the widget open and sends the transcript to the Audio tab Results panel instead of automatically hiding and inserting into the prior operating-system text target."
     },
     {
       "kind": "producer_behavior_changed",
       "target_id": "rust-diffforge.low_power_audio_buffer",
-      "summary": "The widget keeps a low-power microphone graph warm while visible, continuously updates a small PCM ring buffer, discards old frames when idle, and uses client-side VAD to keep pre-roll without invoking Whisper until the user finishes a speech segment."
+      "summary": "The Tauri host keeps a native CPAL microphone stream warm only while the Audio tab monitor or an active recorder capture owns it, continuously updates a small PCM ring buffer during that active ownership, discards old frames when idle, releases the recorder ownership after dictation completes, and records the bounded push-to-talk capture window for transcription when the user releases the key."
     },
     {
       "kind": "producer_behavior_changed",
-      "target_id": "rust-diffforge.vad_filtering",
-      "summary": "The widget filters buffered audio with simple RMS/peak/silence VAD before sending a bounded WAV to the local Tauri transcription command, preventing silent clips from waking Whisper."
+      "target_id": "rust-diffforge.direct_audio_capture",
+      "summary": "The native CPAL audio session uses a low-latency mono linear resampler to prepare the bounded push-to-talk capture window as a 16 kHz WAV for the local Tauri transcription command without local speech gating."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.whisper_cli_fast_path",
+      "summary": "Local transcription remains whisper-cli only, but the command uses a faster short-dictation profile: no transcript output file, result-only stdout, greedy/single-candidate decoding, no temperature fallback, and a bounded thread count from available CPU parallelism. The CLI is still process-per-utterance because whisper-cli does not expose a persistent stdin/session protocol."
     },
     {
       "kind": "security_level_changed",
       "target_id": "rust-diffforge.local_audio_data",
-      "summary": "Microphone audio is captured in the widget while the widget is visible, held only in memory in a bounded rolling buffer, trimmed by VAD, encoded to short WAV payloads, sent only to the local Tauri command boundary, and bounded by size and duration limits before local transcription."
+      "summary": "Microphone audio is captured by native CPAL streams while the Audio tab preview or widget recording is active, held only in memory in bounded rolling buffers, resampled to Whisper's 16 kHz input through a low-latency local resampling path, encoded to short WAV payloads only when finishing a widget recording, sent only to the local Tauri command boundary, written to temporary local scratch files only for whisper-cli execution, and bounded by size and duration limits before local transcription. Toggleable Whisper local-audio diagnostics write timings, counts, sizes, device/runtime metadata, and errors to a local JSONL file without storing raw audio or transcript text."
+    },
+    {
+      "kind": "producer_behavior_changed",
+      "target_id": "rust-diffforge.whisper_audio_diagnostics",
+      "summary": "A single Rust boolean enables or disables dedicated local Whisper audio JSONL logging under the desktop app logs folder, covering model warm-cache timing, CPAL stream lifecycle, capture summaries, linear resampling time, temporary WAV preparation, whisper-cli process duration, cleanup, and transcript length metrics for performance tuning."
     },
     {
       "kind": "no_policy_change",
@@ -57,17 +82,42 @@
     {
       "op": "replace",
       "path": "rust-diffforge/src/App.jsx",
-      "summary": "Replace the Audio placeholder with model installer controls and add the audio-widget recorder route."
+      "summary": "Replace the Audio placeholder with model installer, uninstall controls, and the audio-widget recorder route."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/AudioWorkspaceView.jsx",
+      "summary": "Add Audio tab microphone device selection, native input enablement, live input visualization, auto-open preference, transcription Results panel, uninstall controls, and a custom confirmation modal for app-managed Whisper assets."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/audio/audioCapture.js",
+      "summary": "Bridge the Audio tab and recorder widget to native CPAL Tauri commands for selected audio devices, local setup persistence, device enumeration, monitor stats, transcription result persistence/events, auto-open preference storage, and user-facing microphone error messages."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/AppShell.jsx",
+      "summary": "Wire the Audio tab uninstall action to the Tauri host and refresh local Whisper status."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src/app/appStyles.js",
+      "summary": "Add shared Audio tab controls for input device selection, live level visualization, auto-open preference, Results panel, compact recorder widget, and the uninstall action."
     },
     {
       "op": "replace",
       "path": "rust-diffforge/src-tauri/src/lib.rs",
-      "summary": "Add model download/status, local Whisper transcription, widget window, global shortcut, and focused text insertion commands."
+      "summary": "Add model download/status, uninstall, native CPAL audio input state, local Whisper transcription, compact widget window, global shortcut, and focused text insertion commands."
+    },
+    {
+      "op": "replace",
+      "path": "rust-diffforge/src-tauri/src/audio.rs",
+      "summary": "Add native CPAL audio input device, monitoring, capture, low-latency Whisper WAV preparation, whisper-cli fast command arguments, toggleable local Whisper audio diagnostics, app-managed Whisper uninstall, and status fields."
     },
     {
       "op": "replace",
       "path": "rust-diffforge/src-tauri/Cargo.toml",
-      "summary": "Add local audio transcription and shortcut dependencies."
+      "summary": "Add local audio transcription, CPAL audio input, lightweight Whisper WAV preparation, and shortcut dependencies while keeping transcription on whisper-cli."
     },
     {
       "op": "replace",
@@ -94,9 +144,12 @@
   "data_handling": {
     "captures_microphone_audio": true,
     "sends_audio_to_remote_service": false,
-    "stores_audio_recordings": "temporary WAV files are created only for local whisper.cpp CLI execution and removed immediately after transcription",
+    "stores_audio_recordings": "temporary captured WAV files are created only for local whisper-cli execution and removed immediately after transcription",
     "stores_transcripts": false,
-    "model_storage": "The selected ggml Whisper model is downloaded to the Tauri app data directory."
+    "model_storage": "The selected ggml Whisper model is downloaded to the Tauri app data directory and read once to warm the operating-system file cache when the recorder opens.",
+    "uninstall_behavior": "The uninstall action removes app-managed Whisper assets under the Tauri app data Whisper directory and leaves external system runtimes untouched.",
+    "input_device_storage": "The selected CPAL microphone device id and local setup marker are stored in browser localStorage for this desktop WebView origin.",
+    "diagnostic_logs": "When enabled by the Rust logging boolean, local Whisper audio diagnostics are appended to logs/whisper-local-audio.jsonl with timings, counts, byte sizes, runtime/model paths, and sanitized errors only; raw audio and transcript text are not logged."
   },
   "tests": [
     {
@@ -116,5 +169,6 @@
     }
   ],
   "created_by": "ai",
-  "created_at": "2026-05-07"
+  "created_at": "2026-05-07",
+  "updated_at": "2026-05-08"
 }
